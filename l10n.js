@@ -32,20 +32,6 @@ define([
      * Contains translations coming from the server side
      */
     var L10nManager = ClientVarsManager.extend({
-        /**
-         * Variables Group names
-         */
-        DOCTOR_EDIT : 'doctor-edit',
-        CLINIC_EDIT : 'clinic-edit',
-        SERVICE_EDIT : 'service-edit',
-        SERVICE_BRANCH_EDIT : 'service-branch-edit',
-        BANNER_EDIT : 'banner-edit',
-
-
-        // Group names for Dashboard
-        CONVERSATION_LIST : 'conversation-list',
-        PATIENT_EDIT : 'patient-edit',
-        CALENDAR : 'calendar',
 
         /**
          * This is the get method, shortened to match

@@ -36,32 +36,6 @@ define( [
 
     // Keys comming from the server side
     var keys = {
-        INST : 'inst',               // Instance
-        MODULE : 'module',           // Module
-        LANGUAGE : 'language',
-        ID_LANGUAGE : 'id_language',
-        LANG_PREFIX : 'langPrefix',
-        PAGE : 'page',
-        AVAILABLE_LANGUAGES : 'availableLanguages',
-        AVAILABLE_CITIZEN_REGISTERS : 'available_citizen_registers',
-        USER : 'user',
-        DOCTOR : 'doctor',
-        CLINIC : 'clinic',
-        REDIRECT_SEARCH : 'redirectSearch',
-        REDIRECT_PROFILE : 'redirectProfile',
-        FORM_DEFAULTS : 'formDefaults',
-        // Search Results keys
-        RESULTS : 'results',
-        RANDOM : 'random',
-        WIDGETS : 'widgets',
-        // application version
-        VERSION : 'ver',
-        // indicates whether the user has to accept new terms and conditions
-        ACCEPT_NEW_TERMS : 'acceptNewTerms',
-        // enabled features
-        FEATURES : 'ftrs',
-        // access to features by user, get/set should be handled by another class
-        ACCESS : 'access'
     };
 
     // Store them under the alias k

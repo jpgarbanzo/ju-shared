@@ -258,42 +258,6 @@ define([
         }
     });
 
-    /**
-     * Register a handler to be called when Ajax requests complete with an error.
-     */
-    // var setupGlobalAjaxHandlers = function ()
-    // {
-
-    //     $( document ).ajaxError(function(event, jqxhr, settings, exception) {
-    //         log("AjaxError on request to URL: ", event, jqxhr, settings, exception);
-    //         switch (jqxhr.status) {
-    //             case BaseProxy.HTTP_CODE.FORBIDDEN:
-    //                 alert("Unfortunatelly you don't have permission to access this section. If you think this is an error please contact the system administrator.");
-    //                 break;
-    //             case BaseProxy.HTTP_CODE.UNAUTHORIZED:
-    //                 alert("Your session expired, please log in again.");
-    //                 // Reload root page for now
-    //                 // TODO: append a redirect URL to be redirected back
-    //                 // to the current module
-    //                 window.location.href = '/';
-    //                 break;
-    //             case BaseProxy.HTTP_CODE.SERVER_ERROR:
-    //             default:
-    //                 alert("Oops! Something happened on the server. Please try again later.");
-    //                 break;
-    //         }
-    //     });
-    // };
-
-    // /**
-    //  * Module initialization function
-    //  */
-    // var init = function()
-    // {
-    //     setupGlobalAjaxHandlers();
-    // };
-    // $(init);
-
     // Exports
     return BaseProxy;
     // context.BaseProxy = BaseProxy;
