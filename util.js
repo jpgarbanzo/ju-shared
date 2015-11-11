@@ -537,6 +537,37 @@ define([],
         return string.charAt(0).toUpperCase() + string.slice(1);
     };
 
+    /**
+     * Function to format a string with numbered parameters such as
+     * {0}, {1}
+     * @param  {string} source Format string
+     * @param  {array} params parameters given to the format function to replace in the source
+     * @return {string}        Formatted string
+     */
+    Util.format = function( source, params ) {
+        var self = this;
+
+        if ( arguments.length === 1 ) {
+            return function() {
+                var args = $.makeArray(arguments);
+                args.unshift(source);
+                return self.format.apply( this, args );
+            };
+        }
+        if ( arguments.length > 2 && params.constructor !== Array  ) {
+            params = $.makeArray(arguments).slice(1);
+        }
+        if ( params.constructor !== Array ) {
+            params = [ params ];
+        }
+        $.each(params, function( i, n ) {
+            source = source.replace( new RegExp("\\{" + i + "\\}", "g"), function() {
+                return n;
+            });
+        });
+        return source;
+    };
+
     /*********************************
      * Promises Util
      *********************************/
