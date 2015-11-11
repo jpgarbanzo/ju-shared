@@ -17,22 +17,20 @@ define([
             'jquery',
             'ju-shared/class',
             'ju-shared/l10n',
-            'ju-shared/app-config-manager'
-
-            // @TODO
-            // 'common/dialog',
-            // @TODO
+            'ju-shared/app-config-manager',
+            'ju-shared/connection-status/navigator-online'
         ],
         function (
             $,
             Class,
             L10n,
-            AppConfig
-            // Dialog
+            AppConfig,
+            NavigatorOnlineStatus
         ) {
     'use strict';
 
-    var ERROR_MSG = "Oops! Something did not go as expected. We are working on it right now. Please try again later.";
+    var ERROR_MSG = "Oops! Something did not go as expected. We are working on it right now. Please try again later.",
+        DISCONNECTED_MSG = "Your Internet connection isn't stable and we're not able to communicate with HuliPractice. <br/>  Please check your connection and try again";
 
     /**
      * Global Ajax error handler to catch special HTTP status codes
@@ -90,19 +88,36 @@ define([
     };
 
     /**
+     * Displays default 'you are offline' message
+     */
+    var defaultNotConnectedHandler = function (err, closeCallBack) {
+        var errorMsg = L10n.t('label_error_offline', DISCONNECTED_MSG);
+        BaseProxy.opts.defaultNotConnectedHandler(err, closeCallBack, errorMsg);
+    };
+
+    /**
      * This is the default AJAX error handler if no error handler was provided
      */
     var defaultErrorHandler = function (err, closeCallBack) {
+        if (err && err.jqxhr && 0 === err.jqxhr.status) {
+            return defaultNotConnectedHandler(err, closeCallBack);
+        }
+
         Logger.warn('AJAX error handler', err);
 
         // Display a confirmation dialog
         var errorMsg = getAppErrMsg(err);
         if (!errorMsg) {
-            errorMsg = L10n.t('label_error_text', ERROR_MSG);
+            var isInternetConnected = NavigatorOnlineStatus.testOnline();
+            if (!isInternetConnected) {
+                return defaultNotConnectedHandler(err, closeCallBack);
+            } else {
+                errorMsg = L10n.t('label_error_text', ERROR_MSG);
+            }
         }
-        $('.progress-overlay').toggle(false);
-        // var errorDialog = new Dialog.notification(errorMsg, closeCallBack, L10n.t('label_error_title', 'Oops!'));
-        // errorDialog.open();
+
+        BaseProxy.opts.defaultErrorHandler(err, closeCallBack, errorMsg);
+
     };
 
     /**
@@ -235,10 +250,39 @@ define([
         /**
          * Expose default error handler
          */
-        defaultErrorHandler : defaultErrorHandler
+        defaultErrorHandler : function () {
+            return defaultErrorHandler.apply(this, arguments);
+        }
     });
 
     BaseProxy.classMembers({
+
+        opts : {
+            /**
+             * Displays default 'you are offline' message
+             */
+            defaultNotConnectedHandler : function (err, closeCallBack, errorMsg) {
+
+                log('BaseProxy: This method has not been implemented for this application ');
+                // var errorMsg = L10n.t('label_error_offline', DISCONNECTED_MSG);
+
+                // $('.progress-overlay').toggle(false);
+                // var errorDialog = new Dialog.notification(errorMsg, closeCallBack, L10n.t('title_error_offline', 'Oops!'));
+                // errorDialog.open();
+            },
+            /**
+             *
+             */
+            defaultErrorHandler : function (err, closeCallBack, errorMsg) {
+
+                log('BaseProxy: This method has not been implemented for this application ');
+
+                // $('.progress-overlay').toggle(false);
+                // var errorDialog = new Dialog.notification(errorMsg, closeCallBack, L10n.t('label_error_title', 'Oops!'));
+                // errorDialog.open();
+            }
+        },
+
         /**
          * HTTP Status codes
          */
@@ -253,13 +297,17 @@ define([
          * Endpoints definition
          */
         EP : {
-            // @TODO check this
-            API_PREFIX : '/api/'  // HH.addLangPrefix('/api/')
+            API_PREFIX : '/api/'
+        },
+        /**
+         * Sets new opts for the global Base Proxy object
+         */
+        setOpts : function (opts) {
+            $.extend(BaseProxy.opts, opts);
         }
     });
 
     // Exports
     return BaseProxy;
-    // context.BaseProxy = BaseProxy;
 
 });
