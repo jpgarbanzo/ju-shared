@@ -149,7 +149,7 @@ define([
 
     // Verify if there is any 10 translations in the response to be added to the client
     var processL10n = function (response) {
-        var l10n = response.l10n;
+        var l10n = response ? response.l10n : null;
         if (!l10n) {
             return; // Nothing to add
         }
@@ -159,7 +159,7 @@ define([
 
     // Verify if there is any appConfig values in the response to be added to the client
     var processAppConfig = function (response) {
-        var appConfig = response.appConfig;
+        var appConfig = response ? response.appConfig : null;
         if (!appConfig) {
             return; // Nothing to add
         }
