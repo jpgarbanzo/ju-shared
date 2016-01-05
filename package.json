@@ -1,0 +1,33 @@
+{
+  "name": "ju-shared",
+  "version": "1.0.0",
+  "description": "Object Oriented and common Javascript utilities",
+  "main": " ",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hulilabs/ju-shared.git"
+  },
+  "author": "Huli",
+  "license": " ",
+  "bugs": {
+    "url": "https://github.com/hulilabs/ju-shared/issues"
+  },
+  "devDependencies": {
+    "mocha": "~2.3.4",
+    "chai": "~3.4.1",
+    "requirejs": "~2.1.22",
+    "sinon": "~1.17.2",
+    "grunt-cli": "~0.1.13",
+    "grunt": "~0.4.5",
+    "grunt-mocha": "~0.4.15",
+    "jquery": "~2.1.4",
+    "jsdom": "~3.1.2",
+    "async": "~1.5.1"
+  }
+}
