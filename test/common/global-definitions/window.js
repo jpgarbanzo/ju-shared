@@ -6,7 +6,7 @@
 var jsdom = require('jsdom');
 
 var createGlobalWindowObject = function(callback, err, jsdomWindow) {
-    window = jsdomWindow;
+    window = jsdomWindow; // jshint ignore:line
     callback(err, jsdomWindow);
 };
 

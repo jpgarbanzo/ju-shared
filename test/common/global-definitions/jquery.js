@@ -6,6 +6,6 @@
 var jQuery = require('jquery'); // jshint ignore:line
 
 module.exports = function(virtualWindow, callback) {
-    $ = jQuery(virtualWindow);
+    $ = jQuery(virtualWindow); // jshint ignore:line
     callback();
 };

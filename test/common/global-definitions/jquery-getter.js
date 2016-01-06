@@ -5,8 +5,6 @@
  * See the requirejs config inside `test/bootstrap` for more details
  */
 
-/* globals module */
-
 define([], function() {
     return $;
 });
