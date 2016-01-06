@@ -88,7 +88,7 @@ describe('HTTP Proxy', function() {
 
         var proxy = new BaseProxy(),
             errorHandler = function(/*error*/) {
-
+                // error argument is:
                 // { appError: null,
                 // jqxhr: { status: 500, getResponseHeader: [Function] },
                 // textStatus: 'textstatus',
