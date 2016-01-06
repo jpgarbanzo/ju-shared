@@ -25,7 +25,7 @@ var bootstrap = function(done, err) {
 
             // TODO separate proper logger
             // the problem was due to exposed Logger object in window
-            log = $.noop;
+            log = $.noop;  //jshint ignore:line
             // log = console.log;
             Logger = {
                 warn : $.noop,
@@ -34,8 +34,8 @@ var bootstrap = function(done, err) {
                 useDefaults : $.noop
             };
 
-            // TODO fix this bootstrap
-            alert = $.noop;
+            // TODO fix this bootstrap (move elsewhere, don't just add everything to this function)
+            alert = $.noop; //jshint ignore:line
 
             return done();
         }

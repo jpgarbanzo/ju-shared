@@ -44,7 +44,9 @@ before(function(done) {
 describe('HTTP Proxy', function() {
 
     afterEach(function() {
-        ('function' === typeof $.ajax.restore) && $.ajax.restore();
+        if ('function' === typeof $.ajax.restore) {
+            $.ajax.restore();
+        }
     });
 
     it('Includes makeAjaxRequest in its API', function() {
