@@ -20,7 +20,7 @@ define([
             'ju-shared/app-config-manager',
             'ju-shared/connection-status/navigator-online'
         ],
-        function (
+        function(
             $,
             Class,
             L10n,
@@ -29,22 +29,22 @@ define([
         ) {
     'use strict';
 
-    var ERROR_MSG = "Oops! Something did not go as expected. We are working on it right now. Please try again later.",
-        DISCONNECTED_MSG = "Your Internet connection isn't stable and we're not able to communicate with HuliPractice. <br/>  Please check your connection and try again";
+    var ERROR_MSG = 'Oops! Something did not go as expected. We are working on it right now. Please try again later.',
+        DISCONNECTED_MSG = 'Your Internet connection isn\'t stable and we\'re not able to communicate with HuliPractice. <br/>  Please check your connection and try again';
 
     /**
      * Global Ajax error handler to catch special HTTP status codes
      */
-    var ajaxErrorFn = function (jqxhr, textStatus, errorThrown) {
-        log("AjaxError on request to URL: ", jqxhr, textStatus, errorThrown);
+    var ajaxErrorFn = function(jqxhr, textStatus, errorThrown) {
+        log('AjaxError on request to URL: ', jqxhr, textStatus, errorThrown);
         var stopPropagation = false;
         switch (jqxhr.status) {
             case BaseProxy.HTTP_CODE.FORBIDDEN:
-                alert("Unfortunately you don't have permission to access this section. If you think this is an error please contact the system administrator.");    // jshint ignore:line
+                alert('Unfortunately you don\'t have permission to access this section. If you think this is an error please contact the system administrator.');    // jshint ignore:line
                 break;
             case BaseProxy.HTTP_CODE.UNAUTHORIZED:
                 stopPropagation = true;
-                alert("Your session expired, please log in again.");    // jshint ignore:line
+                alert('Your session expired, please log in again.');    // jshint ignore:line
                 // Reload root page for now
                 // TODO: append a redirect URL to be redirected back
                 // to the current module
@@ -66,7 +66,7 @@ define([
     /**
      * Gets the first error message from the err object
      */
-    var getAppErrMsg = function (err) {
+    var getAppErrMsg = function(err) {
         var errMsg = null,
             appErr = null;
 
@@ -90,7 +90,7 @@ define([
     /**
      * Displays default 'you are offline' message
      */
-    var defaultNotConnectedHandler = function (err, closeCallBack) {
+    var defaultNotConnectedHandler = function(err, closeCallBack) {
         var errorMsg = L10n.t('label_error_offline', DISCONNECTED_MSG);
         BaseProxy.opts.defaultNotConnectedHandler(err, closeCallBack, errorMsg);
     };
@@ -98,7 +98,7 @@ define([
     /**
      * This is the default AJAX error handler if no error handler was provided
      */
-    var defaultErrorHandler = function (err, closeCallBack) {
+    var defaultErrorHandler = function(err, closeCallBack) {
         if (err && err.jqxhr && 0 === err.jqxhr.status) {
             return defaultNotConnectedHandler(err, closeCallBack);
         }
@@ -124,8 +124,8 @@ define([
      * Removes the trailing slashes from the URL
      * @return {[string]} removes the url without the trailing slash
      */
-    var removeTrailingSlashes = function (url) {
-        return url ? url.replace(/\/$/, "") : null;
+    var removeTrailingSlashes = function(url) {
+        return url ? url.replace(/\/$/, '') : null;
     };
 
     /**
@@ -134,7 +134,7 @@ define([
      * and if they don't then reload the client app
      *
      */
-    var checkAppVersion = function (request) {
+    var checkAppVersion = function(request) {
         // Extract the header for the version
         var clientAppVersion = AppConfig.get(AppConfig.k.VERSION),
             serverAppVersion = request.getResponseHeader('Huli-Version');
@@ -148,7 +148,7 @@ define([
     };
 
     // Verify if there is any 10 translations in the response to be added to the client
-    var processL10n = function (response) {
+    var processL10n = function(response) {
         var l10n = response ? response.l10n : null;
         if (!l10n) {
             return; // Nothing to add
@@ -158,17 +158,17 @@ define([
     };
 
     // Verify if there is any appConfig values in the response to be added to the client
-    var processAppConfig = function (response) {
+    var processAppConfig = function(response) {
         var appConfig = response ? response.appConfig : null;
         if (!appConfig) {
             return; // Nothing to add
         }
-        // Apend new translations
+        // Apend new configuration values
         AppConfig.append(appConfig);
     };
 
     // Process any interesting headers from the response and execute the corresponding action
-    var processHeaders = function (request) {
+    var processHeaders = function(request) {
         if (request) {
             checkAppVersion(request);
         }
@@ -179,12 +179,13 @@ define([
      */
     var BaseProxy = Class.extend({
 
-        makeAjaxRequest : function (userParams, stringifyData)
-        {
+
+
+        makeAjaxRequest : function(userParams, stringifyData) {
 
             var self = this,
                 params = {
-                    dataType: "json"
+                    dataType: 'json'
                 };
 
             // Remove any trailing slashes from the end
@@ -193,7 +194,7 @@ define([
             var originalSuccessFn = userParams.success;
             var originalErrorFn = userParams.error || defaultErrorHandler;
 
-            userParams.success = function (response, textStatus, request) {
+            userParams.success = function(response, textStatus, request) {
                 processHeaders(request);
                 processL10n(response);
                 processAppConfig(response);
@@ -206,7 +207,7 @@ define([
             };
 
             // Handle global errors before delegating to
-            userParams.error = function (request, textStatus, errorThrown) {
+            userParams.error = function(request, textStatus, errorThrown) {
                 processHeaders(request);
                 if (!ajaxErrorFn.apply(this, arguments)) {
                     originalErrorFn.call(this, self.normalizeError(null, request, textStatus, errorThrown));
@@ -221,6 +222,7 @@ define([
             $.extend(params, userParams);
             $.ajax(params);
         },
+
         /**
          * Creates a normalized version of the error to handle for either a server error or an app error
          *
@@ -239,18 +241,20 @@ define([
                 'errorThrown' : errorThrown
             }
          */
-        normalizeError : function (appError, jqxhr, textStatus, errorThrown) {
+
+        normalizeError : function(appError, jqxhr, textStatus, errorThrown) {
             return {
-                'appError' : appError,
-                'jqxhr' : jqxhr,
-                'textStatus' : textStatus,
-                'errorThrown' : errorThrown
+                appError : appError,
+                jqxhr : jqxhr,
+                textStatus : textStatus,
+                errorThrown : errorThrown
             };
         },
+
         /**
          * Expose default error handler
          */
-        defaultErrorHandler : function () {
+        defaultErrorHandler : function() {
             return defaultErrorHandler.apply(this, arguments);
         }
     });
@@ -261,7 +265,7 @@ define([
             /**
              * Displays default 'you are offline' message
              */
-            defaultNotConnectedHandler : function (err, closeCallBack, errorMsg) {
+            defaultNotConnectedHandler : function(/*err, closeCallBack, errorMsg*/) {
 
                 log('BaseProxy: This method has not been implemented for this application ');
                 // var errorMsg = L10n.t('label_error_offline', DISCONNECTED_MSG);
@@ -273,7 +277,7 @@ define([
             /**
              *
              */
-            defaultErrorHandler : function (err, closeCallBack, errorMsg) {
+            defaultErrorHandler : function(/*err, closeCallBack, errorMsg*/) {
 
                 log('BaseProxy: This method has not been implemented for this application ');
 
@@ -293,16 +297,18 @@ define([
             FORBIDDEN : 403,
             SERVER_ERROR : 500
         },
+
         /**
          * Endpoints definition
          */
         EP : {
             API_PREFIX : '/api/'
         },
+
         /**
          * Sets new opts for the global Base Proxy object
          */
-        setOpts : function (opts) {
+        setOpts : function(opts) {
             $.extend(BaseProxy.opts, opts);
         }
     });
