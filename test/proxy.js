@@ -1,4 +1,4 @@
-/* globals describe, it, before */
+/* globals describe, it, before, afterEach */
 
 var async = require('async'),
     chai = require('chai'),
@@ -76,7 +76,7 @@ describe('HTTP Proxy', function() {
         // });
     });
 
-    it('Calls provided error handler on AJAX error', function(done) {
+    it('Calls provided default error handler on AJAX error', function(done) {
 
         var requestInsideResponse = {
             status : 500,
@@ -101,6 +101,25 @@ describe('HTTP Proxy', function() {
             url : BaseProxy.EP.API_PREFIX + 'test',
             success : $.noop,
             error : errorHandler
+        });
+
+    });
+
+    it('Calls custom handler for status code 500', function(done) {
+        var requestInsideResponse = {
+            status : 500,
+            getResponseHeader : function() {return '9999';}
+        };
+
+        sinon.stub($, 'ajax')
+            .yieldsTo('error', requestInsideResponse, 'textstatus', 'error thrown');
+
+        var proxy = new BaseProxy({
+            code500Handler : done
+        });
+
+        proxy.makeAjaxRequest({
+            url : BaseProxy.EP.API_PREFIX
         });
 
     });
