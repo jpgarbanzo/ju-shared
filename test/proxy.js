@@ -43,6 +43,10 @@ before(function(done) {
 
 describe('HTTP Proxy', function() {
 
+    afterEach(function() {
+        ('function' === typeof $.ajax.restore) && $.ajax.restore();
+    });
+
     it('Includes makeAjaxRequest in its API', function() {
         expect(BaseProxy).to.be.a('function');
         expect(BaseProxy.getInst().makeAjaxRequest).to.be.a('function');
@@ -64,13 +68,41 @@ describe('HTTP Proxy', function() {
         proxy.makeAjaxRequest({
             url : BaseProxy.EP.API_PREFIX + 'test',
             success : successHandler,
-            error : successHandler
         });
 
         // expect(successHandler).to.have.been.calledWithMatch({
         //     url : '/api/test',
         //     dataType: 'json'
         // });
+    });
+
+    it('Calls provided error handler on AJAX error', function(done) {
+
+        var requestInsideResponse = {
+            status : 500,
+            getResponseHeader : function() {return '9999';}
+        };
+
+        sinon.stub($, 'ajax')
+            .yieldsTo('error', requestInsideResponse, 'textstatus', 'error thrown');
+
+        var proxy = new BaseProxy(),
+            errorHandler = function(/*error*/) {
+
+                // { appError: null,
+                // jqxhr: { status: 500, getResponseHeader: [Function] },
+                // textStatus: 'textstatus',
+                // errorThrown: 'error thrown' }
+
+                done();
+            };
+
+        proxy.makeAjaxRequest({
+            url : BaseProxy.EP.API_PREFIX + 'test',
+            success : $.noop,
+            error : errorHandler
+        });
+
     });
 
 });
