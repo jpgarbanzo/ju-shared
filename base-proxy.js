@@ -37,30 +37,39 @@ define([
      */
     var ajaxErrorFn = function(jqxhr, textStatus, errorThrown) {
         log('AjaxError on request to URL: ', jqxhr, textStatus, errorThrown);
-        var stopPropagation = false;
-        switch (jqxhr.status) {
-            case BaseProxy.HTTP_CODE.FORBIDDEN:
-                alert('Unfortunately you don\'t have permission to access this section. If you think this is an error please contact the system administrator.');    // jshint ignore:line
-                break;
-            case BaseProxy.HTTP_CODE.UNAUTHORIZED:
-                stopPropagation = true;
-                alert('Your session expired, please log in again.');    // jshint ignore:line
-                // Reload root page for now
-                // TODO: append a redirect URL to be redirected back
-                // to the current module
-                window.location.href = '/';
-                break;
-            case BaseProxy.MOVED_PERMANENTLY:
-                stopPropagation = true;
-                alert('Endpoint was moved permanently');    // jshint ignore:line
-                break;
-            case BaseProxy.HTTP_CODE.SERVER_ERROR:
-                break;
-            default:
-                // alert(L10n.t('label_error_text', ERROR_MSG));
-                break;
+
+        var stopPropagation = false,
+            handlerFunction = this.opts['code' + jqxhr.status + 'Handler'];
+        // will attempt to call a handler function named code###Handler
+        // where ### is the status code
+        if ('function' === typeof handlerFunction && $.isNumeric(jqxhr.status)) {
+            stopPropagation = handlerFunction();
         }
+
         return stopPropagation;
+    };
+
+    var code302Handler = function() {
+        alert('Endpoint was moved permanently'); // jshint ignore:line
+        return true;
+    };
+
+    var code401Handler = function() {
+        alert('Your session expired, please log in again.');    // jshint ignore:line
+        // Reload root page for now
+        // TODO: append a redirect URL to be redirected back
+        // to the current module
+        window.location.href = '/';
+        return true;
+    };
+
+    var code403Handler = function() {
+        alert('Unfortunately you don\'t have permission to access this section. If you think this is an error please contact the system administrator.');    // jshint ignore:line
+        return false;
+    };
+
+    var code500Handler = function() {
+        return false;
     };
 
     /**
@@ -100,7 +109,7 @@ define([
      */
     var defaultErrorHandler = function(err, closeCallBack) {
         if (err && err.jqxhr && 0 === err.jqxhr.status) {
-            return defaultNotConnectedHandler(err, closeCallBack);
+            return this.opts.defaultNotConnectedHandler(err, closeCallBack);
         }
 
         Logger.warn('AJAX error handler', err);
@@ -110,7 +119,7 @@ define([
         if (!errorMsg) {
             var isInternetConnected = NavigatorOnlineStatus.testOnline();
             if (!isInternetConnected) {
-                return defaultNotConnectedHandler(err, closeCallBack);
+                return this.opts.defaultNotConnectedHandler(err, closeCallBack);
             } else {
                 errorMsg = L10n.t('label_error_text', ERROR_MSG);
             }
@@ -179,7 +188,23 @@ define([
      */
     var BaseProxy = Class.extend({
 
+        init : function(opts) {
 
+            this.opts = $.extend({
+                code302Handler : code302Handler,
+                code401Handler : code401Handler,
+                code403Handler : code403Handler,
+                code500Handler : code500Handler,
+                ajaxErrorHandler : $.proxy(ajaxErrorFn, this),
+                // skips call to ajaxErrorHandler and code###Handler
+                // so ajax errors will be passed to error handler
+                skipAjaxErrorsHandling : false,
+
+                defaultNotConnectedHandler : $.proxy(defaultNotConnectedHandler, this),
+                defaultErrorHandler : $.proxy(defaultErrorHandler, this),
+                defaultSuccessHandler : $.noop
+            }, opts);
+        },
 
         makeAjaxRequest : function(userParams, stringifyData) {
 
@@ -192,7 +217,7 @@ define([
             userParams.url = removeTrailingSlashes(userParams.url);
 
             var originalSuccessFn = userParams.success;
-            var originalErrorFn = userParams.error || defaultErrorHandler;
+            var originalErrorFn = userParams.error || this.opts.defaultErrorHandler;
 
             userParams.success = function(response, textStatus, request) {
                 processHeaders(request);
@@ -209,9 +234,14 @@ define([
             // Handle global errors before delegating to
             userParams.error = function(request, textStatus, errorThrown) {
                 processHeaders(request);
-                if (!ajaxErrorFn.apply(this, arguments)) {
-                    originalErrorFn.call(this, self.normalizeError(null, request, textStatus, errorThrown));
+
+                if (!self.opts.skipAjaxErrorsHandling) {
+                    var wasErrorStoppedInAjaxHandler = self.opts.ajaxErrorHandler.apply(self, arguments);
+                    if (!wasErrorStoppedInAjaxHandler) {
+                        originalErrorFn.call(this, self.normalizeError(null, request, textStatus, errorThrown));
+                    }
                 }
+
             };
 
             // Stringify the data before performing the AJAX call
