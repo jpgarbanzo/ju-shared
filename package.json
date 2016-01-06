@@ -28,6 +28,7 @@
     "grunt-mocha": "~0.4.15",
     "jquery": "~2.1.4",
     "jsdom": "~3.1.2",
-    "async": "~1.5.1"
+    "async": "~1.5.1",
+    "sinon-chai": "~2.8.0"
   }
 }
