@@ -23,6 +23,20 @@ var bootstrap = function(done, err) {
                 }
             });
 
+            // TODO separate proper logger
+            // the problem was due to exposed Logger object in window
+            log = $.noop;
+            // log = console.log;
+            Logger = {
+                warn : $.noop,
+                setLevel : $.noop,
+                setHandler : $.noop,
+                useDefaults : $.noop
+            };
+
+            // TODO fix this bootstrap
+            alert = $.noop;
+
             return done();
         }
 };
