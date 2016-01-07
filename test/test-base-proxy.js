@@ -156,4 +156,33 @@ describe('HTTP Proxy', function() {
         expect(spy).to.have.been.calledOnce;
     });
 
+    it('Uses custom connection observer and yields to disconnected', function() {
+        var requestInsideResponse = {
+            status : 9999, // fake status code
+            getResponseHeader : function() {return '9999';} // fake app version
+        };
+
+        var onlineTestSpy = sinon.spy(sinon.stub().returns(false));
+
+        var proxy = new BaseProxy({
+            connectionObserver : {
+                isOnline : onlineTestSpy
+            }
+        });
+
+        // fakes $.ajax method
+        sinon.stub($, 'ajax')
+            .yieldsTo('error', requestInsideResponse, 'textstatus', 'error thrown');
+
+        // the ajax request should return in a disconnected state
+        // so we spy the defaultNotConnectedHandler
+        sinon.spy(proxy.opts, 'defaultNotConnectedHandler');
+        proxy.makeAjaxRequest({
+            url : BaseProxy.EP.API_PREFIX
+        });
+
+        expect(onlineTestSpy).to.have.been.calledOnce;
+        expect(proxy.opts.defaultNotConnectedHandler).to.have.been.calledOnce;
+    });
+
 });
