@@ -122,7 +122,7 @@ define([
         // Display a confirmation dialog
         var errorMsg = getAppErrMsg(err);
         if (!errorMsg) {
-            var isInternetConnected = NavigatorOnlineStatus.testOnline();
+            var isInternetConnected = this.opts.connectionObserver.isOnline();
             if (!isInternetConnected) {
                 return this.opts.defaultNotConnectedHandler(err, closeCallBack);
             } else {
@@ -208,7 +208,8 @@ define([
                 // skips call to ajaxErrorHandler and code###Handler
                 // so ajax errors will be passed to error handler
                 skipAjaxErrorsHandling : false,
-
+                // checked wheter we want to know if there's a connection available
+                connectionObserver : NavigatorOnlineStatus,
                 defaultNotConnectedHandler : $.proxy(defaultNotConnectedHandler, this),
                 defaultErrorHandler : $.proxy(defaultErrorHandler, this),
                 defaultSuccessHandler : $.noop
