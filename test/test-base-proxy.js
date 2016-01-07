@@ -126,4 +126,34 @@ describe('HTTP Proxy', function() {
 
     });
 
+    it('Calls provided beforeMakingAjaxRequest handler and yields to success', function(done) {
+        sinon.stub($, 'ajax')
+            .yieldsTo('success', {
+                data : 'dummy-response'
+            });
+
+        var beforeMakingAjaxRequest = function(ajax, params) {
+            expect(ajax).to.be.a('function');
+            expect(params).to.be.an('object');
+
+            ajax(params);
+        },
+            successHandler = function() {
+                done();
+        };
+
+        var spy = sinon.spy(beforeMakingAjaxRequest);
+
+        var proxy = new BaseProxy({
+            beforeMakingAjaxRequest : spy
+        });
+
+        proxy.makeAjaxRequest({
+            url : BaseProxy.EP.API_PREFIX,
+            success : successHandler
+        });
+
+        expect(spy).to.have.been.calledOnce;
+    });
+
 });
