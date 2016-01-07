@@ -60,9 +60,15 @@ define([],
         }
     };
 
+    // API test for easy access to online status
     NavigatorOnlineStatus.testOnline = function() {
         return window.navigator.onLine !== undefined ?
                window.navigator.onLine : true;
+    };
+
+    // alias for testOnline
+    NavigatorOnlineStatus.isOnline = function() {
+        return NavigatorOnlineStatus.testOnline();
     };
 
     return NavigatorOnlineStatus;
