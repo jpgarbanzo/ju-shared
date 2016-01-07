@@ -49,6 +49,11 @@ define([
         return stopPropagation;
     };
 
+    /*
+        DEFAULT HTTP STATUS CODE HANDLERS
+        every handler should return `true` if the error should not propagate
+        to any other error handlers that might catch the error later
+     */
     var code302Handler = function() {
         alert('Endpoint was moved permanently'); // jshint ignore:line
         return true;
@@ -191,6 +196,10 @@ define([
         init : function(opts) {
 
             this.opts = $.extend({
+                // if function is provided, it's called right before the ajax
+                // request is performed. It receives a callback to perform the
+                // ajax request and the params ready for performing the request
+                beforeMakingAjaxRequest : null,
                 code302Handler : code302Handler,
                 code401Handler : code401Handler,
                 code403Handler : code403Handler,
@@ -208,10 +217,9 @@ define([
 
         makeAjaxRequest : function(userParams, stringifyData) {
 
-            var self = this,
-                params = {
-                    dataType: 'json'
-                };
+            var params = {
+                dataType: 'json'
+            };
 
             // Remove any trailing slashes from the end
             userParams.url = removeTrailingSlashes(userParams.url);
@@ -219,30 +227,16 @@ define([
             var originalSuccessFn = userParams.success;
             var originalErrorFn = userParams.error || this.opts.defaultErrorHandler;
 
-            userParams.success = function(response, textStatus, request) {
-                processHeaders(request);
-                processL10n(response);
-                processAppConfig(response);
-                if (response && response.errors) {
-                    log('Application error on AJAX request ', response.errors);
-                    originalErrorFn.call(this, self.normalizeError(response));
-                    return;
-                }
-                originalSuccessFn.apply(this, arguments);
-            };
+            userParams.success = $.proxy(
+                this._handleAjaxRequestSuccess,
+                this,
+                originalSuccessFn,
+                originalErrorFn);
 
-            // Handle global errors before delegating to
-            userParams.error = function(request, textStatus, errorThrown) {
-                processHeaders(request);
-
-                if (!self.opts.skipAjaxErrorsHandling) {
-                    var wasErrorStoppedInAjaxHandler = self.opts.ajaxErrorHandler.apply(self, arguments);
-                    if (!wasErrorStoppedInAjaxHandler) {
-                        originalErrorFn.call(this, self.normalizeError(null, request, textStatus, errorThrown));
-                    }
-                }
-
-            };
+            userParams.error = $.proxy(
+                this._handleAjaxRequestError,
+                this,
+                originalErrorFn);
 
             // Stringify the data before performing the AJAX call
             if (stringifyData) {
@@ -250,7 +244,40 @@ define([
             }
 
             $.extend(params, userParams);
-            $.ajax(params);
+
+            // hook exposed as `beforeMakingAjaxRequest` to execute code before
+            // performing any ajax request and wait for a callback to be called
+            if ('function' === this.opts.beforeMakingAjaxRequest) {
+                var performAjaxRequestCallback = $.proxy.bind($.ajax, $);
+                this.opts.beforeMakingAjaxRequest(performAjaxRequestCallback, params);
+
+            } else {
+            // if no hook is provided, performs the request
+                $.ajax(params);
+            }
+        },
+
+        _handleAjaxRequestSuccess : function(originalSuccessFn, originalErrorFn, response, textStatus, request) {
+            processHeaders(request);
+            processL10n(response);
+            processAppConfig(response);
+            if (response && response.errors) {
+                log('Application error on AJAX request ', response.errors);
+                originalErrorFn.call(this, this.normalizeError(response));
+                return;
+            }
+            originalSuccessFn.call(this, response, textStatus, request);
+        },
+
+        _handleAjaxRequestError : function(originalErrorFn, request, textStatus, errorThrown) {
+            processHeaders(request);
+
+            if (!this.opts.skipAjaxErrorsHandling) {
+                var wasErrorStoppedInAjaxHandler = this.opts.ajaxErrorHandler.call(this, request, textStatus, errorThrown);
+                if (!wasErrorStoppedInAjaxHandler) {
+                    originalErrorFn.call(this, this.normalizeError(null, request, textStatus, errorThrown));
+                }
+            }
         },
 
         /**
