@@ -185,4 +185,25 @@ describe('HTTP Proxy', function() {
         expect(proxy.opts.defaultNotConnectedHandler).to.have.been.calledOnce;
     });
 
+    it('Causes a response code 0 to be handled as a disconnection', function() {
+        var requestInsideResponse = {
+            status : 0, // should be handled as a disconnection
+            getResponseHeader : function() {return '9999';} // fake app version
+        };
+
+        var proxy = new BaseProxy({
+        });
+
+        // fakes $.ajax method
+        sinon.stub($, 'ajax')
+            .yieldsTo('error', requestInsideResponse, 'textstatus', 'error thrown');
+
+        sinon.spy(proxy.opts, 'defaultNotConnectedHandler');
+        proxy.makeAjaxRequest({
+            url : BaseProxy.EP.API_PREFIX
+        });
+
+        expect(proxy.opts.defaultNotConnectedHandler).to.have.been.calledOnce;
+    });
+
 });

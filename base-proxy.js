@@ -109,11 +109,15 @@ define([
         BaseProxy.opts.defaultNotConnectedHandler(err, closeCallBack, errorMsg);
     };
 
+    var isAjaxResultDisconnected = function(err) {
+        return (err && err.jqxhr && 0 === err.jqxhr.status);
+    };
+
     /**
      * This is the default AJAX error handler if no error handler was provided
      */
     var defaultErrorHandler = function(err, closeCallBack) {
-        if (err && err.jqxhr && 0 === err.jqxhr.status) {
+        if (isAjaxResultDisconnected(err)) {
             return this.opts.defaultNotConnectedHandler(err, closeCallBack);
         }
 
