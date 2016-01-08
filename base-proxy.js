@@ -318,7 +318,7 @@ define([
          * Expose default error handler
          */
         defaultErrorHandler : function() {
-            return defaultErrorHandler.apply(this, arguments);
+            return this.opts.defaultErrorHandler.apply(this, arguments);
         }
     });
 
