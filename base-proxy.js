@@ -204,7 +204,12 @@ define([
                 code401Handler : code401Handler,
                 code403Handler : code403Handler,
                 code500Handler : code500Handler,
+                // called before the default error handler for handling HTTP status
+                // codes for requests that resulted from an error
                 ajaxErrorHandler : $.proxy(ajaxErrorFn, this),
+                // handles custom application errors that are returned on a successful
+                // ajax request
+                appErrorHandler : $.proxy(defaultErrorHandler, this),
                 // skips call to ajaxErrorHandler and code###Handler
                 // so ajax errors will be passed to error handler
                 skipAjaxErrorsHandling : false,
@@ -225,14 +230,15 @@ define([
             // Remove any trailing slashes from the end
             userParams.url = removeTrailingSlashes(userParams.url);
 
-            var originalSuccessFn = userParams.success;
-            var originalErrorFn = userParams.error || this.opts.defaultErrorHandler;
+            var originalSuccessFn = userParams.success,
+                originalErrorFn = userParams.error || this.opts.defaultErrorHandler,
+                appErrorHandler = userParams.appError || this.opts.appErrorHandler;
 
             userParams.success = $.proxy(
                 this._handleAjaxRequestSuccess,
                 this,
                 originalSuccessFn,
-                originalErrorFn);
+                appErrorHandler);
 
             userParams.error = $.proxy(
                 this._handleAjaxRequestError,
