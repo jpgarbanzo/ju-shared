@@ -16,21 +16,18 @@
 define([
             'jquery',
             'ju-shared/class',
-            'ju-shared/l10n',
-            'ju-shared/app-config-manager',
             'ju-shared/connection-status/navigator-online'
         ],
         function(
             $,
             Class,
-            L10n,
-            AppConfig,
             NavigatorOnlineStatus
         ) {
     'use strict';
 
     var ERROR_MSG = 'Oops! Something did not go as expected. We are working on it right now. Please try again later.',
-        DISCONNECTED_MSG = 'Your Internet connection isn\'t stable and we\'re not able to communicate with HuliPractice. <br/>  Please check your connection and try again';
+        DISCONNECTED_MSG = 'Your Internet connection isn\'t stable and we\'re not able to communicate with HuliPractice. <br/>  Please check your connection and try again',
+        APP_ERROR_MSG = 'There\'s an error message sent by the application. Check custom message argument.';
 
     /**
      * Global Ajax error handler to catch special HTTP status codes
@@ -105,10 +102,20 @@ define([
      * Displays default 'you are offline' message
      */
     var defaultNotConnectedHandler = function(err, closeCallBack) {
-        var errorMsg = L10n.t('label_error_offline', DISCONNECTED_MSG);
-        BaseProxy.opts.defaultNotConnectedHandler(err, closeCallBack, errorMsg);
+        var proxyError = {
+            code : BaseProxy.PROXY_ERROR_STATUS_CODE.OFFLINE_ERROR,
+            customMessage : null,
+            defaultMessage : DISCONNECTED_MSG
+        };
+
+        BaseProxy.opts.defaultNotConnectedHandler(err, closeCallBack, proxyError);
     };
 
+    /**
+     * Checks if a jquery ajax error seems to be causes by a disconnected status
+     * @param  {Object}  err jQuery.ajax error
+     * @return {Boolean}
+     */
     var isAjaxResultDisconnected = function(err) {
         return (err && err.jqxhr && 0 === err.jqxhr.status);
     };
@@ -117,25 +124,33 @@ define([
      * This is the default AJAX error handler if no error handler was provided
      */
     var defaultErrorHandler = function(err, closeCallBack) {
-        if (isAjaxResultDisconnected(err)) {
+        Logger.warn('AJAX error handler', err);
+
+        // first check if there's a proper error message retrieved from the app
+        var appErrorMessage = getAppErrMsg(err);
+        if (appErrorMessage) {
+            var proxyError = {
+                code : BaseProxy.PROXY_ERROR_STATUS_CODE.APP_ERROR,
+                customMessage : appErrorMessage,
+                defaultMessage : APP_ERROR_MSG
+            };
+
+            return BaseProxy.opts.defaultErrorHandler(err, closeCallBack, proxyError);
+        }
+
+        // second, check for connection errors
+        var isInternetConnected = this.opts.connectionObserver.isOnline();
+        if (isAjaxResultDisconnected(err) || !isInternetConnected) {
             return this.opts.defaultNotConnectedHandler(err, closeCallBack);
         }
 
-        Logger.warn('AJAX error handler', err);
-
-        // Display a confirmation dialog
-        var errorMsg = getAppErrMsg(err);
-        if (!errorMsg) {
-            var isInternetConnected = this.opts.connectionObserver.isOnline();
-            if (!isInternetConnected) {
-                return this.opts.defaultNotConnectedHandler(err, closeCallBack);
-            } else {
-                errorMsg = L10n.t('label_error_text', ERROR_MSG);
-            }
-        }
-
-        BaseProxy.opts.defaultErrorHandler(err, closeCallBack, errorMsg);
-
+        // third, fallback to uncaught ajax error status
+        var proxyError = {
+            code : BaseProxy.PROXY_ERROR_STATUS_CODE.AJAX_ERROR,
+            customMessage : null,
+            defaultMessage : ERROR_MSG
+        };
+        BaseProxy.opts.defaultErrorHandler(err, closeCallBack, proxyError);
     };
 
     /**
@@ -144,52 +159,6 @@ define([
      */
     var removeTrailingSlashes = function(url) {
         return url ? url.replace(/\/$/, '') : null;
-    };
-
-    /**
-     *
-     * Validates that the client and the server version matches,
-     * and if they don't then reload the client app
-     *
-     */
-    var checkAppVersion = function(request) {
-        // Extract the header for the version
-        var clientAppVersion = AppConfig.get(AppConfig.k.VERSION),
-            serverAppVersion = request.getResponseHeader('Huli-Version');
-        if (clientAppVersion && serverAppVersion &&
-            (clientAppVersion != serverAppVersion) &&
-            (serverAppVersion.indexOf('s') < 0)) {
-            log('Reloading app since app version changed');
-            // Reload the client version if the versions doesn't match
-            window.location.reload();
-        }
-    };
-
-    // Verify if there is any 10 translations in the response to be added to the client
-    var processL10n = function(response) {
-        var l10n = response ? response.l10n : null;
-        if (!l10n) {
-            return; // Nothing to add
-        }
-        // Apend new translations
-        L10n.append(l10n);
-    };
-
-    // Verify if there is any appConfig values in the response to be added to the client
-    var processAppConfig = function(response) {
-        var appConfig = response ? response.appConfig : null;
-        if (!appConfig) {
-            return; // Nothing to add
-        }
-        // Apend new configuration values
-        AppConfig.append(appConfig);
-    };
-
-    // Process any interesting headers from the response and execute the corresponding action
-    var processHeaders = function(request) {
-        if (request) {
-            checkAppVersion(request);
-        }
     };
 
     /**
@@ -268,9 +237,8 @@ define([
         },
 
         _handleAjaxRequestSuccess : function(originalSuccessFn, originalErrorFn, response, textStatus, request) {
-            processHeaders(request);
-            processL10n(response);
-            processAppConfig(response);
+            BaseProxy.opts.preprocessAjaxSuccess(response, textStatus, request);
+
             if (response && response.errors) {
                 log('Application error on AJAX request ', response.errors);
                 originalErrorFn.call(this, this.normalizeError(response));
@@ -280,7 +248,7 @@ define([
         },
 
         _handleAjaxRequestError : function(originalErrorFn, request, textStatus, errorThrown) {
-            processHeaders(request);
+            BaseProxy.opts.preprocessAjaxError(request, textStatus, errorThrown);
 
             if (!this.opts.skipAjaxErrorsHandling) {
                 var wasErrorStoppedInAjaxHandler = this.opts.ajaxErrorHandler.call(this, request, textStatus, errorThrown);
@@ -329,28 +297,21 @@ define([
     BaseProxy.classMembers({
 
         opts : {
-            /**
-             * Displays default 'you are offline' message
-             */
+
             defaultNotConnectedHandler : function(/*err, closeCallBack, errorMsg*/) {
-
-                log('BaseProxy: This method has not been implemented for this application ');
-                // var errorMsg = L10n.t('label_error_offline', DISCONNECTED_MSG);
-
-                // $('.progress-overlay').toggle(false);
-                // var errorDialog = new Dialog.notification(errorMsg, closeCallBack, L10n.t('title_error_offline', 'Oops!'));
-                // errorDialog.open();
+                log('BaseProxy: method `defaultNotConnectedHandler` has not been implemented for this application ');
             },
-            /**
-             *
-             */
+
             defaultErrorHandler : function(/*err, closeCallBack, errorMsg*/) {
+                log('BaseProxy: method `defaultErrorHandler` has not been implemented for this application ');
+            },
 
-                log('BaseProxy: This method has not been implemented for this application ');
+            preprocessAjaxSuccess : function(/*originalSuccessFn, originalErrorFn, response, textStatus, request*/) {
+                log('BaseProxy: method `preprocessAjaxSuccess` has not been implemented for this application ');
+            },
 
-                // $('.progress-overlay').toggle(false);
-                // var errorDialog = new Dialog.notification(errorMsg, closeCallBack, L10n.t('label_error_title', 'Oops!'));
-                // errorDialog.open();
+            preprocessAjaxError : function(/*request, textStatus, errorThrown*/) {
+                log('BaseProxy: method `preprocessAjaxError` has not been implemented for this application ');
             }
         },
 
@@ -365,6 +326,15 @@ define([
             SERVER_ERROR : 500
         },
 
+        PROXY_ERROR_STATUS_CODE : {
+            // uncaught ajax error
+            AJAX_ERROR : 'PE_AJAX',
+            // caught app error
+            APP_ERROR : 'PE_APP',
+            // caught offline error
+            OFFLINE_ERROR : 'PE_OFFLINE'
+        },
+
         /**
          * Endpoints definition
          */
@@ -375,7 +345,7 @@ define([
         /**
          * Sets new opts for the global Base Proxy object
          */
-        setOpts : function(opts) {
+        configure : function(opts) {
             $.extend(BaseProxy.opts, opts);
         }
     });
