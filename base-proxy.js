@@ -26,7 +26,7 @@ define([
     'use strict';
 
     var ERROR_MSG = 'Oops! Something did not go as expected. We are working on it right now. Please try again later.',
-        DISCONNECTED_MSG = 'Your Internet connection isn\'t stable and we\'re not able to communicate with HuliPractice. <br/>  Please check your connection and try again',
+        DISCONNECTED_MSG = 'Your Internet connection isn\'t stable and we\'re not able to communicate with the server.  Please check your connection and try again',
         APP_ERROR_MSG = 'There\'s an error message sent by the application. Check custom message argument.';
 
     /**
