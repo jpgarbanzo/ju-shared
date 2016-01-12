@@ -250,11 +250,13 @@ define([
         _handleAjaxRequestError : function(originalErrorFn, request, textStatus, errorThrown) {
             BaseProxy.opts.preprocessAjaxError(request, textStatus, errorThrown);
 
+            var wasErrorStoppedInAjaxHandler = false;
             if (!this.opts.skipAjaxErrorsHandling) {
-                var wasErrorStoppedInAjaxHandler = this.opts.ajaxErrorHandler.call(this, request, textStatus, errorThrown);
-                if (!wasErrorStoppedInAjaxHandler) {
-                    originalErrorFn.call(this, this.normalizeError(null, request, textStatus, errorThrown));
-                }
+                wasErrorStoppedInAjaxHandler = this.opts.ajaxErrorHandler.call(this, request, textStatus, errorThrown);
+            }
+
+            if (!wasErrorStoppedInAjaxHandler) {
+                originalErrorFn.call(this, this.normalizeError(null, request, textStatus, errorThrown));
             }
         },
 
