@@ -13,9 +13,9 @@ var bootstrap = function(done, err) {
             return done(err);
         } else {
             requirejs.config({
-                baseUrl : __dirname + '/../',
+                baseUrl : __dirname + '/../src/',
                 paths : {
-                    'ju-shared' : __dirname + '/../',
+                    'ju-shared' : __dirname + '/../src/',
                     // override to the jquery path defined in frontend
                     // this file returns a proper jQuery def (with a dom set)
                     // for node.js
