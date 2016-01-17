@@ -182,7 +182,7 @@ define([
                 ajaxErrorHandler : $.proxy(ajaxErrorFn, this),
                 // handles custom application errors that are returned on a successful
                 // ajax request
-                appErrorHandler : $.proxy(defaultErrorHandler, this),
+                appErrorHandler : null,
                 // skips call to ajaxErrorHandler and code###Handler
                 // so ajax errors will be passed to error handler
                 skipAjaxErrorsHandling : false,
@@ -200,12 +200,12 @@ define([
                 dataType: 'json'
             };
 
-            // Remove any trailing slashes from the end
+            // removes any trailing slashes from the end
             userParams.url = removeTrailingSlashes(userParams.url);
 
-            var originalSuccessFn = userParams.success,
+            var originalSuccessFn = userParams.success || this.opts.defaultSuccessHandler,
                 originalErrorFn = userParams.error || this.opts.defaultErrorHandler,
-                appErrorHandler = userParams.appError || this.opts.appErrorHandler;
+                appErrorHandler = userParams.appError || this.opts.appErrorHandler || originalErrorFn;
 
             userParams.success = $.proxy(
                 this._handleAjaxRequestSuccess,
@@ -236,18 +236,17 @@ define([
             }
         },
 
-        _handleAjaxRequestSuccess : function(originalSuccessFn, originalErrorFn, response, textStatus, request) {
+        _handleAjaxRequestSuccess : function(successHandler, appErrorHandler, response, textStatus, request) {
             BaseProxy.opts.preprocessAjaxSuccess(response, textStatus, request);
 
             if (response && response.errors) {
                 log('Application error on AJAX request ', response.errors);
-                originalErrorFn.call(this, this.normalizeError(response));
-                return;
+                return appErrorHandler.call(this, this.normalizeError(response));
             }
-            originalSuccessFn.call(this, response, textStatus, request);
+            successHandler.call(this, response, textStatus, request);
         },
 
-        _handleAjaxRequestError : function(originalErrorFn, request, textStatus, errorThrown) {
+        _handleAjaxRequestError : function(errorHandler, request, textStatus, errorThrown) {
             BaseProxy.opts.preprocessAjaxError(request, textStatus, errorThrown);
 
             var wasErrorStoppedInAjaxHandler = false;
@@ -256,7 +255,7 @@ define([
             }
 
             if (!wasErrorStoppedInAjaxHandler) {
-                originalErrorFn.call(this, this.normalizeError(null, request, textStatus, errorThrown));
+                errorHandler.call(this, this.normalizeError(null, request, textStatus, errorThrown));
             }
         },
 
