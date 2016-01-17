@@ -33,7 +33,7 @@ define([
      * Global Ajax error handler to catch special HTTP status codes
      */
     var ajaxErrorFn = function(jqxhr, textStatus, errorThrown) {
-        log('AjaxError on request to URL: ', jqxhr, textStatus, errorThrown);
+        log('BaseProxy: AJAX error on request to URL: ', jqxhr, textStatus, errorThrown);
 
         var stopPropagation = false,
             handlerFunction = this.opts['code' + jqxhr.status + 'Handler'];
@@ -124,7 +124,6 @@ define([
      * This is the default AJAX error handler if no error handler was provided
      */
     var defaultErrorHandler = function(err, closeCallBack) {
-        Logger.warn('AJAX error handler', err);
 
         // first check if there's a proper error message retrieved from the app
         var appErrorMessage = getAppErrMsg(err);
@@ -135,12 +134,14 @@ define([
                 defaultMessage : APP_ERROR_MSG
             };
 
+            Logger.warn('BaseProxy: defaultErrorHandler caught app-handled error', proxyError);
             return BaseProxy.opts.defaultErrorHandler(err, closeCallBack, proxyError);
         }
 
         // second, check for connection errors
         var isInternetConnected = this.opts.connectionObserver.isOnline();
         if (isAjaxResultDisconnected(err) || !isInternetConnected) {
+            Logger.warn('BaseProxy: defaultErrorHandler disconnected error');
             return this.opts.defaultNotConnectedHandler(err, closeCallBack);
         }
 
@@ -150,12 +151,14 @@ define([
             customMessage : null,
             defaultMessage : ERROR_MSG
         };
-        BaseProxy.opts.defaultErrorHandler(err, closeCallBack, proxyError);
+
+        Logger.warn('BaseProxy: defaultErrorHandler AJAX error', proxyError);
+        return BaseProxy.opts.defaultErrorHandler(err, closeCallBack, proxyError);
     };
 
     /**
      * Removes the trailing slashes from the URL
-     * @return {[string]} removes the url without the trailing slash
+     * @return {string} removes the url without the trailing slash
      */
     var removeTrailingSlashes = function(url) {
         return url ? url.replace(/\/$/, '') : null;
@@ -218,7 +221,7 @@ define([
                 this,
                 originalErrorFn);
 
-            // Stringify the data before performing the AJAX call
+            // stringify the data before performing the AJAX call
             if (stringifyData) {
                 userParams.data = JSON.stringify(userParams.data);
             }
@@ -240,13 +243,14 @@ define([
             BaseProxy.opts.preprocessAjaxSuccess(response, textStatus, request);
 
             if (response && response.errors) {
-                log('Application error on AJAX request ', response.errors);
-                return appErrorHandler.call(this, this.normalizeError(response));
+                log('BaseProxy: application error on successful AJAX request ', response.errors);
+                return appErrorHandler.call(this, this._normalizeError(response));
             }
             successHandler.call(this, response, textStatus, request);
         },
 
         _handleAjaxRequestError : function(errorHandler, request, textStatus, errorThrown) {
+            log('BaseProxy: handling AJAX error', arguments);
             BaseProxy.opts.preprocessAjaxError(request, textStatus, errorThrown);
 
             var wasErrorStoppedInAjaxHandler = false;
@@ -255,7 +259,7 @@ define([
             }
 
             if (!wasErrorStoppedInAjaxHandler) {
-                errorHandler.call(this, this.normalizeError(null, request, textStatus, errorThrown));
+                errorHandler.call(this, this._normalizeError(null, request, textStatus, errorThrown));
             }
         },
 
@@ -278,7 +282,7 @@ define([
             }
          */
 
-        normalizeError : function(appError, jqxhr, textStatus, errorThrown) {
+        _normalizeError : function(appError, jqxhr, textStatus, errorThrown) {
             return {
                 appError : appError,
                 jqxhr : jqxhr,
