@@ -175,7 +175,7 @@ define([
                 // if function is provided, it's called right before the ajax
                 // request is performed. It receives a callback to perform the
                 // ajax request and the params ready for performing the request
-                beforeMakingAjaxRequest : null,
+                beforeMakingAjaxRequest : BaseProxy.opts.defaultBeforeMakingAjaxRequest,
                 code302Handler : code302Handler,
                 code401Handler : code401Handler,
                 code403Handler : code403Handler,
@@ -190,7 +190,7 @@ define([
                 // so ajax errors will be passed to error handler
                 skipAjaxErrorsHandling : false,
                 // checked wheter we want to know if there's a connection available
-                connectionObserver : NavigatorOnlineStatus,
+                connectionObserver : BaseProxy.opts.defaultConnectionObserver,
                 defaultNotConnectedHandler : $.proxy(defaultNotConnectedHandler, this),
                 defaultErrorHandler : $.proxy(defaultErrorHandler, this),
                 defaultSuccessHandler : $.noop
@@ -200,7 +200,7 @@ define([
         makeAjaxRequest : function(userParams, stringifyData) {
 
             var params = {
-                dataType: 'json'
+                dataType : 'json'
             };
 
             // removes any trailing slashes from the end
@@ -317,7 +317,11 @@ define([
 
             preprocessAjaxError : function(/*request, textStatus, errorThrown*/) {
                 log('BaseProxy: method `preprocessAjaxError` has not been implemented for this application ');
-            }
+            },
+
+            defaultBeforeMakingAjaxRequest : null,
+
+            defaultConnectionObserver : NavigatorOnlineStatus
         },
 
         /**
@@ -348,7 +352,7 @@ define([
         },
 
         /**
-         * Sets new opts for the global Base Proxy object
+         * Sets new opts for the global Base Proxy definition object
          */
         configure : function(opts) {
             $.extend(BaseProxy.opts, opts);
