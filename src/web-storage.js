@@ -61,7 +61,7 @@ define([
                 }
 
                 if (this.isLocalStorageAvailable && this.fireStorageEvent){
-                    window.addEventListener("storage", this.storageEventHandler, false);
+                    window.addEventListener("storage", $.proxy(this.storageEventHandler, this), false);
                 }
             },
 
@@ -134,7 +134,7 @@ define([
                  * @type {Object}
                  * @see https://developer.mozilla.org/en-US/docs/Web/Events/storage
                  */
-                this.trigger(this.EV.STORAGE_EVENT, event);
+                this.trigger(WebStorage.EV.STORAGE_EVENT, event);
             }
         });
 

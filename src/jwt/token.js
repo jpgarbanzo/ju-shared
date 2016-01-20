@@ -47,9 +47,13 @@ define([
             /**
              * Create an instance of a JWT token
              * @param {String} token - JWT token
+             * @param {Object} opts - JWT library options
+             * @param {Object} opts.audience - audience key(aud definition)
+             * @see https://self-issued.info/docs/draft-ietf-oauth-json-web-token.html#audDef
              * @returns {?Object} jwtToken
              */
-            init : function (token) {
+            init : function (token, opts) {
+                this.opts = opts;
                 /**
                  * Original JWT Token string
                  * @member source {String}
@@ -89,12 +93,11 @@ define([
 
             /**
              * Check if the token is still valid
-             * Check the expiration date
+             * Check the expiration date and the audience
              * @returns {Boolean} if the token is valid
              */
             isValid : function () {
-                return false;
-
+                return this.payload && this.opts && !this._hasExpired() && this._isTheAudienceValid();
             },
 
             /**
@@ -112,7 +115,7 @@ define([
                         decodedPayload = this._decode(tokenValues[1]);
                         if (decodedPayload) {
                             this.payload = decodedPayload;
-                            return true;
+                            return this.isValid();
                         }
                     }
                 }
@@ -131,14 +134,43 @@ define([
                     Logger.error(ERROR_INVALID_TOKEN, error);
                     return null;
                 }
-            }
+            },
 
+            /**
+             * Checks if the expiration date is greater than the current date
+             * @returns {Boolean}
+             * @private
+             */
+            _hasExpired : function(){
+                if (typeof this.payload.exp === 'number'){
+                    /** if the expiration date is greater than the current date */
+                    if (this.payload.exp > Math.floor(Date.now() / 1000)) {
+                        return false;
+                    }
+                }
+                return true;
+            },
+
+            /**
+             * Checks if the token payload audience matches the desired audience(opts.audience)
+             * @returns {Boolean}
+             * @private
+             */
+            _isTheAudienceValid : function() {
+                var options = this.opts;
+                var payload = this.payload;
+                if (options.audience) {
+                    var audiences = Array.isArray(options.audience) ? options.audience : [options.audience];
+                    var target = Array.isArray(payload.aud) ? payload.aud : [payload.aud];
+
+                    return target.some(function (aud) {
+                        return audiences.indexOf(aud) != -1;
+                    });
+                }
+                return false;
+            }
         });
 
-        /*
-        AWTToken.classMembers({
-
-        });*/
 
         // Exports
         return JWTToken;

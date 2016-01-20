@@ -15,7 +15,7 @@
  * @description In charge of requesting access tokens.
  * Refresh the access token when the access token expired.
  * Add the token to the Authorization header.
- * @requires ju-shared/class
+ * @requires ju-shared/observable-class
  * @requires ju-shared/jwt/token
  * @requires ju-shared/web-storage
  * @module ju-shared/auth-provider
@@ -40,32 +40,43 @@ define([
 
         var AuthProvider = ObservableClass.extend({
 
-            init : function () {
+            /***
+             *
+             * @param {Object} opts - configuration
+             * @param {String} opts.APP_KEY - application id
+             */
+            init : function (opts) {
                 this.webStorage = new WebStorage();
-                this.loadToken();
-            },
-            /**
-             * Set and store the token on local storage
-             * @param token {String} - JWT token
-             */
-            updateToken : function (token) {
-                this.accessToken =  new JWTToken(token);
-                var jwtToken = this.accessToken ?  this.accessToken.getToken() : null;
-                this.webStorage.setItem(AuthProvider.WEB_STORAGE_KEY_ACCESS_TOKEN, jwtToken);
-            },
-            /**
-             * Load the token value from the source(1.local storage | 2. cookie)
-             * @returns {*|token} JWTToken
-             */
-            loadToken : function () {
+                this.opts = opts || AuthProvider.opts;
+                /** JWT options needed to create and validate a token*/
+                this.jwtOptions = {
+                    audience: this.opts.APP_KEY
+                };
                 /**
                  * JWTToken
                  * @member token {?Object}
                  * @default null
                  * @see module:ju-shared/jwt/token
                  */
-                this.accessToken = new JWTToken(this.webStorage.getItem(AuthProvider.WEB_STORAGE_KEY_ACCESS_TOKEN));
-                return this.accessToken;
+                this.accessToken = this.loadToken();
+            },
+
+            /**
+             * Load the token value from the source(1.local storage | 2. cookie)
+             * @returns {*|token} JWTToken
+             */
+            loadToken : function () {
+                return new JWTToken(this.webStorage.getItem(AuthProvider.WEB_STORAGE_KEY_ACCESS_TOKEN), this.jwtOptions);
+            },
+
+            /**
+             * Sets and stores the token on local storage
+             * @param token {String} - JWT token
+             */
+            updateToken : function (token) {
+                this.accessToken =  new JWTToken(token, this.jwtOptions);
+                var jwtToken = this.accessToken ?  this.accessToken.getToken() : null;
+                this.webStorage.setItem(AuthProvider.WEB_STORAGE_KEY_ACCESS_TOKEN, jwtToken);
             },
 
             /**
@@ -88,11 +99,8 @@ define([
              * Checks if the current token is valid
              * @returns {Boolean}
              */
-            isTheTokenValid : function () {
-                if (this.accessToken && this.accessToken.getToken()){
-                    return true;
-                }else{
-                    return false;}
+            isTokenValid : function () {
+                return this.accessToken && this.accessToken.isValid();
             }
         });
 
@@ -106,7 +114,13 @@ define([
             /**
              * @constant {String} WEB_STORAGE_KEY_ACCESS_TOKEN - Web storage key for the access token, it will store the token
              */
-            WEB_STORAGE_KEY_ACCESS_TOKEN : 'access_token'
+            WEB_STORAGE_KEY_ACCESS_TOKEN : 'access_token',
+
+            opts : {},
+
+            configure : function(opts) {
+               AuthProvider.opts = opts;
+            }
         });
 
         // Exports

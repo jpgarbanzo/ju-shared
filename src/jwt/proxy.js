@@ -43,6 +43,8 @@ define([
          * @see https://github.com/hulilabs/portunus#headers
          */
         init : function (opts) {
+            opts = opts || {};
+            opts.skipAjaxErrorsHandling = true;
             this._super.call(this, opts);
         },
 
@@ -57,13 +59,14 @@ define([
          * @see https://github.com/hulilabs/portunus#post-login
          */
         login : function (params, successCallback, errorCallback) {
+            var loginUrl = this.EP && this.EP.LOGIN ?  this.EP.LOGIN : AuthProxy.opts.EP.LOGIN;
             var ajaxParams = {
                 headers : {
                     APP_KEY : this.opts.APP_KEY || BaseProxy.opts.APP_KEY
                 },
                 contentType : 'application/x-www-form-urlencoded',
                 data : params,
-                url : this.EP.LOGIN,
+                url : loginUrl,
                 useJWTAuthentication : false,
                 type: 'POST',
                 success : function (result, textStatus, request) {
@@ -105,6 +108,16 @@ define([
             var authProvider = AuthProvider.getInst();
             authProvider.updateToken(null);
             callback(request, textStatus, error);
+        }
+    });
+
+    AuthProxy.classMembers({
+        opts : {},
+        /**
+         * Sets new opts for the global Base Proxy definition object
+         */
+        configure : function(opts) {
+            $.extend(AuthProxy.opts, opts);
         }
     });
 
