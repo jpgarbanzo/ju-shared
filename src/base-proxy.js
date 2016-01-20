@@ -36,42 +36,14 @@ define([
         log('BaseProxy: AJAX error on request to URL: ', jqxhr, textStatus, errorThrown);
 
         var stopPropagation = false,
-            handlerFunction = this.opts['code' + jqxhr.status + 'Handler'];
-        // will attempt to call a handler function named code###Handler
+            handlerFunction = this.opts.statusHandlers['code' + jqxhr.status];
+        // will attempt to call a handler function named code### inside statusHandlers opt
         // where ### is the status code
         if ('function' === typeof handlerFunction && $.isNumeric(jqxhr.status)) {
             stopPropagation = handlerFunction();
         }
 
         return stopPropagation;
-    };
-
-    /*
-        DEFAULT HTTP STATUS CODE HANDLERS
-        every handler should return `true` if the error should not propagate
-        to any other error handlers that might catch the error later
-     */
-    var code302Handler = function() {
-        alert('Endpoint was moved permanently'); // jshint ignore:line
-        return true;
-    };
-
-    var code401Handler = function() {
-        alert('Your session expired, please log in again.');    // jshint ignore:line
-        // Reload root page for now
-        // TODO: append a redirect URL to be redirected back
-        // to the current module
-        window.location.href = '/';
-        return true;
-    };
-
-    var code403Handler = function() {
-        alert('Unfortunately you don\'t have permission to access this section. If you think this is an error please contact the system administrator.');    // jshint ignore:line
-        return false;
-    };
-
-    var code500Handler = function() {
-        return false;
     };
 
     /**
@@ -171,15 +143,12 @@ define([
 
         init : function(opts) {
 
-            this.opts = $.extend({
+            this.opts = $.extend(true, {
                 // if function is provided, it's called right before the ajax
                 // request is performed. It receives a callback to perform the
                 // ajax request and the params ready for performing the request
                 beforeMakingAjaxRequest : BaseProxy.opts.defaultBeforeMakingAjaxRequest,
-                code302Handler : code302Handler,
-                code401Handler : code401Handler,
-                code403Handler : code403Handler,
-                code500Handler : code500Handler,
+                statusHandlers : BaseProxy.opts.statusHandlers,
                 // called before the default error handler for handling HTTP status
                 // codes for requests that resulted from an error
                 ajaxErrorHandler : $.proxy(ajaxErrorFn, this),
@@ -321,7 +290,38 @@ define([
 
             defaultBeforeMakingAjaxRequest : null,
 
-            defaultConnectionObserver : NavigatorOnlineStatus
+            defaultConnectionObserver : NavigatorOnlineStatus,
+
+            /*
+                DEFAULT HTTP STATUS CODE HANDLERS
+                every handler should return `true` if the error should not propagate
+                to any other error handlers that might catch the error later
+             */
+
+            statusHandlers : {
+                code302 : function() {
+                    alert('Endpoint was moved permanently'); // jshint ignore:line
+                    return true;
+                },
+
+                code401 : function() {
+                    alert('Your session expired, please log in again.');    // jshint ignore:line
+                    // Reload root page for now
+                    // TODO: append a redirect URL to be redirected back
+                    // to the current module
+                    window.location.href = '/';
+                    return true;
+                },
+
+                code403 : function() {
+                    alert('Unfortunately you don\'t have permission to access this section. If you think this is an error please contact the system administrator.');    // jshint ignore:line
+                    return false;
+                },
+
+                code500 : function() {
+                    return false;
+                }
+            }
         },
 
         /**
@@ -355,7 +355,7 @@ define([
          * Sets new opts for the global Base Proxy definition object
          */
         configure : function(opts) {
-            $.extend(BaseProxy.opts, opts);
+            $.extend(true, BaseProxy.opts, opts);
         }
     });
 
