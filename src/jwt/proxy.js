@@ -108,6 +108,61 @@ define([
             var authProvider = AuthProvider.getInst();
             authProvider.updateToken(null);
             callback(request, textStatus, error);
+        },
+
+        /**
+         * Logout request
+         * @param {Object} params
+         * @param {String} params.email - email address
+         * @param {String} params.password - user password
+         * @param {Function} successCallback
+         * @param {Function} errorCallback
+         * @see https://github.com/hulilabs/portunus#get-authlogout
+         */
+        logout : function (successCallback, errorCallback) {
+            var logoutUrl = this.EP && this.EP.LOGOUT ?  this.EP.LOGOUT : AuthProxy.opts.EP.LOGOUT;
+            var ajaxParams = {
+                url : logoutUrl,
+                type: 'GET',
+                success : function (result, textStatus, request) {
+                    this._logoutSuccess(result, textStatus, request, successCallback);
+                },
+                error : function (request, textStatus, error) {
+                    this._logoutError(request, textStatus, error, errorCallback);
+                }
+            };
+            this.makeAjaxRequest(ajaxParams);
+        },
+
+        /**
+         * this function is executed when the logout is successful, sets the token null.
+         * @param {Anything} result
+         * @param {String} textStatus
+         * @param {jqXHR} request
+         * @param {Function} callback
+         * @private
+         * @see http://api.jquery.com/jquery.ajax/#jQuery-ajax-settings
+         */
+        _logoutSuccess : function (result, textStatus, request, callback) {
+            var authProvider = AuthProvider.getInst();
+            authProvider.updateToken(null);
+            callback(result, textStatus, request);
+        },
+
+        /**
+         * this function is executed when the logout fails
+         * @param {jqXHR} request
+         * @param {String} textStatus
+         * @param {String} error
+         * @param {Function} callback
+         * @private
+         */
+        _logoutError : function (request, textStatus, error, callback) {
+            /***
+             * @TODO define what to do when the logout fails
+             */
+            Logger.error(error, request);
+            callback(request, textStatus, error);
         }
     });
 
