@@ -8,7 +8,7 @@ var async = require('async'),
     sinonChai = require('sinon-chai');
 
 // config and bootstrap
-sinon.assert.expose(chai.assert, { prefix: '' });
+sinon.assert.expose(chai.assert, { prefix : '' });
 chai.use(sinonChai);
 
 var bootstrapProxyDefinition = function(callback) {
@@ -117,7 +117,9 @@ describe('HTTP Proxy', function() {
             .yieldsTo('error', requestInsideResponse, 'textstatus', 'error thrown');
 
         var proxy = new BaseProxy({
-            code500Handler : done
+            statusHandlers : {
+                code500 : done
+            }
         });
 
         proxy.makeAjaxRequest({
