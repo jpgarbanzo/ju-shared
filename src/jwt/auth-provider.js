@@ -15,6 +15,7 @@
  * @description In charge of requesting access tokens.
  * Refresh the access token when the access token expired.
  * Add the token to the Authorization header.
+ * @requires jquery
  * @requires ju-shared/observable-class
  * @requires ju-shared/jwt/token
  * @requires ju-shared/web-storage
@@ -23,11 +24,13 @@
  */
 
 define([
+        'jquery',
         'ju-shared/observable-class',
         'ju-shared/jwt/token',
-        'ju-shared/web-storage',
+        'ju-shared/web-storage'
     ],
     function (
+        $,
         ObservableClass,
         JWTToken,
         WebStorage
@@ -59,6 +62,7 @@ define([
                  * @see module:ju-shared/jwt/token
                  */
                 this.accessToken = this.loadToken();
+                this.webStorage.on(WebStorage.EV.STORAGE_EVENT, $.proxy(this.refreshTokenHandler,this));
             },
 
             /**
@@ -101,6 +105,18 @@ define([
              */
             isTokenValid : function () {
                 return this.accessToken && this.accessToken.isValid();
+            },
+
+            /***
+             * Handle the event when the token is updated in other tab or window
+             * @param {StorageEvent} event
+             * @see https://developer.mozilla.org/en-US/docs/Web/Events/storage
+             */
+            refreshTokenHandler : function(event){
+                if (event && event.key === AuthProvider.WEB_STORAGE_KEY_ACCESS_TOKEN){
+                    log('new access token, updated in other tab');
+                    this.accessToken = this.loadToken();
+                }
             }
         });
 

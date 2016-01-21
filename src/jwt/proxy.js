@@ -59,14 +59,14 @@ define([
          * @see https://github.com/hulilabs/portunus#post-login
          */
         login : function (params, successCallback, errorCallback) {
-            var loginUrl = this.EP && this.EP.LOGIN ?  this.EP.LOGIN : AuthProxy.opts.EP.LOGIN;
+            var requestUrl = this.EP && this.EP.LOGIN ?  this.EP.LOGIN : AuthProxy.opts.EP.LOGIN;
             var ajaxParams = {
                 headers : {
                     APP_KEY : this.opts.APP_KEY || BaseProxy.opts.APP_KEY
                 },
                 contentType : 'application/x-www-form-urlencoded',
                 data : params,
-                url : loginUrl,
+                url : requestUrl,
                 useJWTAuthentication : false,
                 type: 'POST',
                 success : function (result, textStatus, request) {
@@ -112,17 +112,14 @@ define([
 
         /**
          * Logout request
-         * @param {Object} params
-         * @param {String} params.email - email address
-         * @param {String} params.password - user password
          * @param {Function} successCallback
          * @param {Function} errorCallback
          * @see https://github.com/hulilabs/portunus#get-authlogout
          */
         logout : function (successCallback, errorCallback) {
-            var logoutUrl = this.EP && this.EP.LOGOUT ?  this.EP.LOGOUT : AuthProxy.opts.EP.LOGOUT;
+            var requestUrl = this.EP && this.EP.LOGOUT ?  this.EP.LOGOUT : AuthProxy.opts.EP.LOGOUT;
             var ajaxParams = {
-                url : logoutUrl,
+                url : requestUrl,
                 type: 'GET',
                 success : function (result, textStatus, request) {
                     this._logoutSuccess(result, textStatus, request, successCallback);
@@ -150,7 +147,7 @@ define([
         },
 
         /**
-         * this function is executed when the logout fails
+         * This function is executed when the logout fails
          * @param {jqXHR} request
          * @param {String} textStatus
          * @param {String} error
@@ -160,6 +157,61 @@ define([
         _logoutError : function (request, textStatus, error, callback) {
             /***
              * @TODO define what to do when the logout fails
+             */
+            Logger.error(error, request);
+            callback(request, textStatus, error);
+        },
+
+
+        /**
+         * Refresh token request
+         * @param {Function} successCallback
+         * @param {Function} errorCallback
+         * @see https://github.com/hulilabs/portunus#get-authrefresh
+         */
+        refreshToken : function (successCallback, errorCallback) {
+            var requestUrl = this.EP && this.EP.REFRESH_TOKEN ?  this.EP.REFRESH_TOKEN : AuthProxy.opts.EP.REFRESH_TOKEN;
+            var ajaxParams = {
+                url : requestUrl,
+                type: 'GET',
+                success : function (result, textStatus, request) {
+                    this._refreshTokenSuccess(result, textStatus, request, successCallback);
+                },
+                error : function (request, textStatus, error) {
+                    this._refreshTokenError(request, textStatus, error, errorCallback);
+                }
+            };
+            this.makeAjaxRequest(ajaxParams);
+        },
+
+        /**
+         * This function is executed when the refreshToken is successfully.
+         * @param {Anything} result
+         * @param {String} textStatus
+         * @param {jqXHR} request
+         * @param {Function} callback
+         * @private
+         * @see http://api.jquery.com/jquery.ajax/#jQuery-ajax-settings
+         */
+        _refreshTokenSuccess : function (result, textStatus, request, callback) {
+            var authProvider = AuthProvider.getInst();
+            var token = result.data ? result.data.jwt : null;
+            /** Update the localStorage with the returned token **/
+            authProvider.updateToken(token);
+            callback(result, textStatus, request);
+        },
+
+        /**
+         * This function is executed when the refreshToken fails
+         * @param {jqXHR} request
+         * @param {String} textStatus
+         * @param {String} error
+         * @param {Function} callback
+         * @private
+         */
+        _refreshTokenError : function (request, textStatus, error, callback) {
+            /***
+             * @TODO define what to do when the refreshToken fails
              */
             Logger.error(error, request);
             callback(request, textStatus, error);
