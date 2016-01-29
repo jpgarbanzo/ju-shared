@@ -176,6 +176,15 @@ window.log = function() {
         Logger.setLevel(defaultLevel || Logger.DEBUG);
         Logger.setHandler(function(messages, context) {
 
+            var firstMessage = messages[0];
+
+            // Check if the first message is an explicit error object
+            // then just throw it, so it displays all the real stack trace info
+            // to the console
+            if (firstMessage instanceof Error) {
+                throw firstMessage;
+            }
+
             var console = window.console;
             var hdlr = console.log;
 
@@ -212,11 +221,29 @@ window.log = function() {
 Logger.setLevel(Logger.WARN);
 Logger.setHandler(function(messages, context) {
     try {
+
+        var mainInquiry = messages[0],
+            mainMessage = mainInquiry,
+            errorObj = mainInquiry;
+
+        if (errorObj instanceof Error) {
+            mainMessage = errorObj.message;
+        } else {
+            // Creates a new error object that will carry the callstack
+            errorObj = new Error();
+        }
+
         var payload = {
-            m : messages[0],
+            // Message
+            m : mainMessage,
+            // Level
             l : context.level && context.level.name,
+            // Payload
             p : JSON && JSON.stringify ? JSON.stringify(messages) : 'Payload not supported',
-            s : context.name || null
+            //
+            s : context.name || null,
+            // stack trace
+            st : errorObj.stack
         };
 
         //Setting parameters
