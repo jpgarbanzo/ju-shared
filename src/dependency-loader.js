@@ -139,6 +139,11 @@ define([
                 });
             });
 
+            // If there is any issue loading the dependencies then log it to the server
+            dependenciesFetchedPromise['catch'](function (err) {
+                Logger.error(err);
+            });
+
             return dependenciesFetchedPromise;
         },
         /**
