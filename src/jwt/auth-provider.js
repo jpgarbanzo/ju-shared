@@ -40,6 +40,8 @@ define([
 
         /** Constants **/
 
+       var ERROR_INVALID_TOKEN = "Token invalid";
+
 
         var AuthProvider = ObservableClass.extend({
 
@@ -47,13 +49,15 @@ define([
              *
              * @param {Object} opts - configuration
              * @param {String} opts.APP_KEY - application id
+             * @param {String} opts.LoginURL - login URL
              */
             init : function (opts) {
                 this.webStorage = new WebStorage();
-                this.opts = opts || AuthProvider.opts;
+                this.appKey = opts.APP_KEY || AuthProvider.opts.APP_KEY;
+                this.LoginURL = opts.LoginURL || AuthProvider.LoginURL;
                 /** JWT options needed to create and validate a token*/
                 this.jwtOptions = {
-                    audience: this.opts.APP_KEY
+                    audience: this.appKey
                 };
                 /**
                  * JWTToken
@@ -117,6 +121,44 @@ define([
                     log('new access token, updated in other tab');
                     this.accessToken = this.loadToken();
                 }
+            },
+
+            /***
+             * Returns a middleware object to handle the auth
+             * @returns {Object}
+             */
+            getMiddleware  : function () {
+                var _self = this;
+                var Middleware = {};
+
+                /**
+                 * Defines and returns a promise that validates the authentication
+                 * @param {Object }controllerInfo - controller/route information
+                 * @returns {Promise}
+                 */
+               Middleware.run = function (controllerInfo) {
+                    return new Promise(function(resolve, reject) {
+                        if (!controllerInfo.needAuthentication || (controllerInfo.needAuthentication && _self.isTokenValid())) {
+                            resolve(true);
+                        }
+                        else {
+                            reject(new Error(ERROR_INVALID_TOKEN));
+                        }
+                    });
+                };
+
+
+                /**
+                 * Redirects to opts.LoginURL when the authentication fails
+                 * @param {Error}
+                 */
+                Middleware.errorHandler = function (error) {
+                    log('Error handled, token invalid, redirect to login page '+ _self.LoginURL);
+                    window.location.href = _self.LoginURL;
+                    throw error;
+                };
+
+                return Middleware;
             }
         });
 
@@ -132,10 +174,12 @@ define([
              */
             WEB_STORAGE_KEY_ACCESS_TOKEN : 'access_token',
 
-            opts : {},
+            opts : {
+                LoginURL : '/'
+            },
 
             configure : function(opts) {
-               AuthProvider.opts = opts;
+                $.extend(true, AuthProvider.opts, opts);
             }
         });
 
