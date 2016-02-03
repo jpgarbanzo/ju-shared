@@ -15,8 +15,8 @@
  * @requires jquery
  * @requires ju-shared/base-proxy
  * @requires ju-shared/jwt/auth-provider
- * @module ju-shared/jwt
- * @extends ju-shared/observable-class
+ * @module ju-shared/jwt/proxy
+ * @extends ju-shared/base-proxy
  */
 
 
@@ -36,11 +36,12 @@ define([
     var AuthProxy = BaseProxy.extend({
 
         /**
+         * @constructor
+         * @alias module:ju-shared/jwt/proxy
          * @param {String} opts.APP_KEY - The consumer ID key
          * @param {String} opts.EP.LOGIN - the login URL endpoint
          * @param {String} opts.EP.LOGOUT - the logout URL endpoint
          * @param {String} opts.EP.REFRESH_TOKEN - the refreshToken URL endpoint
-         * @see https://github.com/hulilabs/portunus#headers
          */
         init : function (opts) {
             opts = opts || {};
@@ -56,7 +57,6 @@ define([
          * @param {String} params.password - user password
          * @param {Function} successCallback
          * @param {Function} errorCallback
-         * @see https://github.com/hulilabs/portunus#post-login
          */
         login : function (params, successCallback, errorCallback) {
             var requestUrl = this.EP && this.EP.LOGIN ?  this.EP.LOGIN : AuthProxy.opts.EP.LOGIN;
@@ -80,7 +80,7 @@ define([
         },
 
         /**
-         * this function is executed when the login is successful, it saves the provided token.
+         * Is executed when the login is successful, it saves the provided token.
          * @param {Anything} result
          * @param {String} textStatus
          * @param {jqXHR} request
@@ -97,7 +97,7 @@ define([
         },
 
         /**
-         * this function is executed when the login fails, set the token as null
+         * Is executed when the login fails, set the token as null
          * @param {jqXHR} request
          * @param {String} textStatus
          * @param {String} error
@@ -132,7 +132,7 @@ define([
         },
 
         /**
-         * this function is executed when the logout is successful, sets the token null.
+         * Is executed when the logout is successful, sets the token null.
          * @param {Anything} result
          * @param {String} textStatus
          * @param {jqXHR} request
@@ -147,7 +147,7 @@ define([
         },
 
         /**
-         * This function is executed when the logout fails
+         * Is executed when the logout fails
          * @param {jqXHR} request
          * @param {String} textStatus
          * @param {String} error
@@ -185,7 +185,7 @@ define([
         },
 
         /**
-         * This function is executed when the refreshToken is successfully.
+         * Is executed when the refreshToken is successfully.
          * @param {Anything} result
          * @param {String} textStatus
          * @param {jqXHR} request
@@ -202,7 +202,7 @@ define([
         },
 
         /**
-         * This function is executed when the refreshToken fails
+         * Is executed when the refreshToken fails
          * @param {jqXHR} request
          * @param {String} textStatus
          * @param {String} error
@@ -210,7 +210,7 @@ define([
          * @private
          */
         _refreshTokenError : function (request, textStatus, error, callback) {
-            /***
+            /**
              * @TODO define what to do when the refreshToken fails
              */
             Logger.error(error, request);

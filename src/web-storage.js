@@ -18,7 +18,8 @@
  * @requires ju-shared/util
  * @requires ju-shared/lib/vendor/polyfills/webstorage-polyfill
  * @module ju-shared/web-storage
- * @fires storageEvent
+ * @listens module:ju-shared/web-storage#storageEvent
+ * @fires module:ju-shared/web-storage#storageEvent
  * @extends ju-shared/observable-class
  */
 
@@ -126,23 +127,20 @@ define([
             /**
              * Event handler for storage events
              * @param event {StorageEvent} - event {@link https://developer.mozilla.org/en-US/docs/Web/Events/storage}
-             * @todo implement an event listener for storage key, right now fires an event for a change in any key
+             * @todo implement an event listener for key, right now fires an event for a change in any key
              */
             storageEventHandler : function (event) {
-                /**
-                 * @event storageEvent
-                 * @type {Object}
-                 * @see https://developer.mozilla.org/en-US/docs/Web/Events/storage
-                 */
                 this.trigger(WebStorage.EV.STORAGE_EVENT, event);
             }
         });
 
         WebStorage.classMembers({
-            /**
-             * @constant {String} EV.STORAGE_EVENT - storage event name
-             */
             EV : {
+                /**
+                 * Event triggered when a storage value is updated
+                 * {@link https://developer.mozilla.org/en-US/docs/Web/Events/storage}
+                 * @event module:ju-shared/web-storage#storageEvent
+                 */
                 STORAGE_EVENT : 'storageEvent'
             },
             formatKey : function () {

@@ -92,6 +92,14 @@ define([
             },
 
             /**
+             * Get the expiration day
+             * @returns {Number} returns -1 if the token doesn't have an expiration day
+             */
+            getExpirationTime : function () {
+                return this.payload ? this.payload.exp : -1;
+            },
+
+            /**
              * Check if the token is still valid
              * Check the expiration date and the audience
              * @returns {Boolean} if the token is valid
