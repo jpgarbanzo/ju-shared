@@ -512,6 +512,33 @@ define([],
     };
 
     /**
+     * This function will receive a JSON object and remove all the keys that
+     * have either empty strings, null, undefined values, empty objects and empty arrays.
+     *
+     * @return {Object} Sanitized object
+     */
+    Util.sanitizeJson = function(obj) {
+        for (var key in obj) {
+            var item = obj[key];
+            if (item === null || item === undefined || $.trim(item) === '') {
+                delete obj[key];
+            } else if (Array.isArray(item)) {
+                if (item.length === 0) {
+                    // Removes empty arrays
+                    delete obj[key];
+                } else {
+                    Util.sanitizeJson(item);
+                }
+            } else if (typeof item == 'object') {
+                Util.sanitizeJson(item);
+                if ($.isEmptyObject(item)) {
+                    delete obj[key];
+                }
+            }
+        }
+    };
+
+    /**
      * Adds padding left of the string
      *
      */
