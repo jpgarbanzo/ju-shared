@@ -11,12 +11,11 @@
 
 /**
  * @file WebStorage Wrapper
- * @description WebStorage Wrapper, uses localStorage when available, and falls back on cookies.
+ * @description WebStorage Wrapper, uses localStorage when available
  * Triggers an event if there is a change on a web storage key.
  * @requires jquery
  * @requires ju-shared/observable-class
  * @requires ju-shared/util
- * @requires ju-shared/lib/vendor/polyfills/webstorage-polyfill
  * @module ju-shared/web-storage
  * @listens module:ju-shared/web-storage#storageEvent
  * @fires module:ju-shared/web-storage#storageEvent
@@ -26,14 +25,12 @@
 define([
         'jquery',
         'ju-shared/observable-class',
-        'ju-shared/util',
-        'ju-shared/lib/vendor/polyfills/webstorage-polyfill'
+        'ju-shared/util'
     ],
     function (
         $,
         ObservableClass,
-        Util,
-        WebStoragePolyfill
+        Util
     ){
 
         'use strict';
@@ -44,21 +41,14 @@ define([
              * @constructor
              * @alias module:ju-shared/web-storage
              * @param {Object} [opts] - configuration options
-             * @param {Boolean} [opts.useCookies=false] - force the use of cookies instead of web storage.
              * @param {Boolean} [opts.fireStorageEvent=true] - activate the listener of storage event, it is fired when a storage area (localStorage or sessionStorage) has been modified.
              */
             init : function (opts) {
-                this.useCookies = false;
                 this.fireStorageEvent = true;
-                if (opts) {
-                    this.useCookies = opts.useCookies || this.useCookies;
-                    this.fireStorageEvent = opts.fireStorageEvent || this.fireStorageEvent;
-                }
                 this.isLocalStorageAvailable = this.getIsLocalStorageAvailable();
-                // use cookies if the browser doesn't support local storage
-                if ( this.useCookies || !this.isLocalStorageAvailable ){
-                    WebStoragePolyfill.init();
-                    this.useCookies = true;
+
+                if (opts) {
+                    this.fireStorageEvent = opts.fireStorageEvent || this.fireStorageEvent;
                 }
 
                 if (this.isLocalStorageAvailable && this.fireStorageEvent){
@@ -72,7 +62,9 @@ define([
              * @param {String} value - A DOMString containing the value you want to give the key you are creating/updating.
              */
             setItem : function (key, value) {     // jshint ignore:line
-                window.localStorage.setItem(key, value);
+                if (this.isLocalStorageAvailable){
+                    window.localStorage.setItem(key, value);
+                }
             },
 
             /**
@@ -104,17 +96,9 @@ define([
                     storage.removeItem('testKey');
                     storageAvailable = true;
                 } catch (e) {
-                    log('localStorage is not available');
+                    Logger.error('localStorage is not available');
                 }
-
                 return storageAvailable;
-            },
-            /**
-             * Indicates if the library is using native localStorage(true) otherwise will use cookies
-             * @returns {Boolean}
-             */
-            isNativeSupport : function(){
-                return this.isLocalStorageAvailable;
             },
 
             /**
