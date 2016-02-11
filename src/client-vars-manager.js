@@ -15,7 +15,7 @@
 define([
             'ju-shared/class'
         ],
-        function (
+        function(
             Class
         ) {
     'use strict';
@@ -30,7 +30,7 @@ define([
      */
     var ClientVarsManager = Class.extend({
 
-        init : function ()
+        init : function()
         {   // Initialize variables dictionary
             this.varsDictionary = {};
             // Tracks the names of the groups that
@@ -44,7 +44,7 @@ define([
          * @param  {string} groupName Optional. Name of the group
          *                            of vars that will be appended
          */
-        append : function (vars, groupName) {
+        append : function(vars, groupName) {
 
             var varsDict = this.varsDictionary,
                 newVarsCount = 0;
@@ -66,7 +66,7 @@ define([
          * @return {mixed}         the value returned by the server
          *                             for that key
          */
-        get : function (keyName) {
+        get : function(keyName) {
             var value = this.varsDictionary[keyName];
             if (value == null) {
                 Logger.warn("ClientVarsManager: Couldn't find value for key", keyName);
@@ -81,13 +81,15 @@ define([
 
             return oldValue;
         },
+
         /**
          * Validates if a specified key exists or not
          * @return {bool}         true if the key exists
          */
-        exists : function (keyName) {
+        exists : function(keyName) {
             return (this.varsDictionary[keyName] != null);
         },
+
         /**
          * Checks if the given group name was already added
          * to the dictionary
@@ -95,7 +97,7 @@ define([
          * @return {Boolean}           true if the group name was
          *                                  already dadded
          */
-        isGroupLoaded : function (groupName) {
+        isGroupLoaded : function(groupName) {
             var groupVarsSize = this.addedGroups[groupName];
             return (groupVarsSize && groupVarsSize > 0);
         }

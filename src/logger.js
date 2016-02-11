@@ -15,22 +15,22 @@
  * Logger module
  * This layer provides logging support for the front-end classes
  */
-(function ()
+(function()
 {
 
 /**
  * Convenience wrapper for log function
  * This function will use whatever default function was defined
  */
-window.log = function () {
+window.log = function() {
     Logger.debug.apply(Logger, arguments);
 };
 
 /*!
  * js-logger
  */
-(function (window) {
-    "use strict";
+(function(window) {
+    'use strict';
 
     // Top level module for the global, static logger instance.
     var Logger = { };
@@ -48,7 +48,7 @@ window.log = function () {
         };
     };
 
-    var merge = function () {
+    var merge = function() {
         var args = arguments, target = args[0], key, i;
         for (i = 1; i < args.length; i++) {
             for (key in args[i]) {
@@ -84,35 +84,35 @@ window.log = function () {
         // Changes the current logging level for the logging instance.
         setLevel: function(newLevel) {
             // Ensure the supplied Level object looks valid.
-            if (newLevel && "value" in newLevel) {
+            if (newLevel && 'value' in newLevel) {
                 this.context.filterLevel = newLevel;
             }
         },
 
         // Is the logger configured to output messages at the supplied level?
-        enabledFor: function (lvl) {
+        enabledFor: function(lvl) {
             var filterLevel = this.context.filterLevel;
             return lvl.value >= filterLevel.value;
         },
 
-        debug: function () {
+        debug: function() {
             this.invoke(Logger.DEBUG, arguments);
         },
 
-        info: function () {
+        info: function() {
             this.invoke(Logger.INFO, arguments);
         },
 
-        warn: function () {
+        warn: function() {
             this.invoke(Logger.WARN, arguments);
         },
 
-        error: function () {
+        error: function() {
             this.invoke(Logger.ERROR, arguments);
         },
 
         // Invokes the logger callback if it's not being filtered.
-        invoke: function (level, msgArgs) {
+        invoke: function(level, msgArgs) {
             if (logHandler && this.enabledFor(level)) {
                 logHandler(msgArgs, merge({ level: level }, this.context));
             }
@@ -140,7 +140,7 @@ window.log = function () {
     // Set the global logging handler.  The supplied function should expect two arguments, the first being an arguments
     // object with the supplied log messages and the second being a context object which contains a hash of stateful
     // parameters which the logging function can consume.
-    Logger.setHandler = function (func) {
+    Logger.setHandler = function(func) {
         logHandler = func;
     };
 
@@ -160,7 +160,7 @@ window.log = function () {
 
     // Retrieve a ContextualLogger instance.  Note that named loggers automatically inherit the global logger's level,
     // default context and log handler.
-    Logger.get = function (name) {
+    Logger.get = function(name) {
         // All logger instances are cached so they can be configured ahead of use.
         return contextualLoggersByNameMap[name] ||
             (contextualLoggersByNameMap[name] = new ContextualLogger(merge({ name: name }, globalLogger.context)));
@@ -169,19 +169,28 @@ window.log = function () {
     // Configure and example a Default implementation which writes to the `window.console` (if present).
     Logger.useDefaults = function(defaultLevel) {
         // Check for the presence of a logger.
-        if (!("console" in window)) {
+        if (!('console' in window)) {
             return;
         }
 
         Logger.setLevel(defaultLevel || Logger.DEBUG);
         Logger.setHandler(function(messages, context) {
 
+            var firstMessage = messages[0];
+
+            // Check if the first message is an explicit error object
+            // then just throw it, so it displays all the real stack trace info
+            // to the console
+            if (firstMessage instanceof Error) {
+                throw firstMessage;
+            }
+
             var console = window.console;
             var hdlr = console.log;
 
             // Prepend the logger's name to the log message for easy identification.
             if (context.name) {
-                messages[0] = "[" + context.name + "] " + messages[0];
+                messages[0] = '[' + context.name + '] ' + messages[0];
             }
 
             // Delegate through to custom warn/error loggers if present on the console.
@@ -199,27 +208,42 @@ window.log = function () {
     if (typeof define === 'function' && define.amd) {
         window['Logger'] = Logger;
         define(Logger);
-    }
-    else if (typeof module !== 'undefined' && module.exports) {
+    } else if (typeof module !== 'undefined' && module.exports) {
         module.exports = Logger;
-    }
-    else {
+    } else {
         window['Logger'] = Logger;
     }
 }(window));
-
 
 /**
  * Production logging handler
  */
 Logger.setLevel(Logger.WARN);
-Logger.setHandler(function (messages, context) {
+Logger.setHandler(function(messages, context) {
     try {
+
+        var mainInquiry = messages[0],
+            mainMessage = mainInquiry,
+            errorObj = mainInquiry;
+
+        if (errorObj instanceof Error) {
+            mainMessage = errorObj.message;
+        } else {
+            // Creates a new error object that will carry the callstack
+            errorObj = new Error();
+        }
+
         var payload = {
-            m : messages[0],
+            // Message
+            m : mainMessage,
+            // Level
             l : context.level && context.level.name,
+            // Payload
             p : JSON && JSON.stringify ? JSON.stringify(messages) : 'Payload not supported',
-            s : context.name || null
+            //
+            s : context.name || null,
+            // stack trace
+            st : errorObj.stack
         };
 
         //Setting parameters
@@ -227,18 +251,18 @@ Logger.setHandler(function (messages, context) {
                             type: 'POST',
                             url : HH.addLangPrefix('/api/log'),
                             data: payload,
-                            success : function () {
+                            success : function() {
                                 //begin:DevOnly
                                 log('Log call success');
                                 //end:DevOnly
                             },
-                            error : function () {
+                            error : function() {
                                 // Couldn't communicate with the logging endpoint
                             }
                         };
         $.ajax(params);
     }
-    catch(err) {
+    catch (err) {
         //begin:DevOnly
         if (console) {
             console.log('ERROR logging messages to server', err);
@@ -252,7 +276,6 @@ Logger.useDefaults(
     Logger.DEBUG
 );
 //end:DevOnly
-
 
 //begin:DevOnly
 
@@ -272,7 +295,7 @@ Logger.useDefaults(
 // }
 
 // log() -- The complete, cross-browser (we don't judge!) console.log wrapper for his or her logging pleasure
-window.log = function () {
+window.log = function() {
     var args = arguments,
         isReallyIE8Plus = false,
         ua, winRegexp, script, i;
@@ -346,12 +369,12 @@ window.log = function () {
             // If you want to expand the console window by default, uncomment this line
             //document.getElementsByTagName('HTML')[0].setAttribute('debug','true');
             document.getElementsByTagName('HEAD')[0].appendChild(script);
-            setTimeout(function () {
+            setTimeout(function() {
                 window.log.apply(window, args);
             }, 2000);
         } else {
             // FBL was included but it hasn't finished loading yet, so try again momentarily
-            setTimeout(function () {
+            setTimeout(function() {
                 window.log.apply(window, args);
             }, 500);
         }
@@ -359,10 +382,6 @@ window.log = function () {
 };
 
 //end:DevOnly
-
-
-
-
 
 // End of Logging class
 })();

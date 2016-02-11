@@ -1,6 +1,6 @@
 {
     "name": "ju-shared",
-    "description": "",
+    "description": "Object Oriented and common Javascript utilities",
     "dependencies": {
         "blueimp-md5" : "1.1.1"
     },

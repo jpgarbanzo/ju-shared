@@ -196,7 +196,6 @@ define([],
         return flatten(array, shallow, false);
     };
 
-
     // Keep the identity function around for default iteratees.
     Util.identity = function(value) {
         return value;
@@ -233,8 +232,6 @@ define([],
         }
         return true;
     };
-
-
 
     // Similar to ES6's rest param (http://ariya.ofilabs.com/2013/03/es6-and-rest-parameter.html)
     // This accumulates the arguments passed into an array, after a given index.
@@ -281,7 +278,6 @@ define([],
         }
         return obj;
     };
-
 
     // Determine if at least one element in the object matches a truth test.
     // Delegates to **ECMAScript 5**'s native `some` if available.
@@ -366,11 +362,11 @@ define([],
     /**
      * Returns a new array removing the duplicates
      */
-    Util.arrayUnique = function (array) {
+    Util.arrayUnique = function(array) {
         var a = array.concat();
-        for(var i=0; i<a.length; ++i) {
-            for(var j=i+1; j<a.length; ++j) {
-                if(a[i] === a[j])
+        for (var i = 0; i < a.length; ++i) {
+            for (var j = i + 1; j < a.length; ++j) {
+                if (a[i] === a[j])
                     a.splice(j--, 1);
             }
         }
@@ -384,24 +380,24 @@ define([],
      *
      * @return {array}            concatenated array
      */
-    Util.concatUnique = function (target, source, getValueFn) {
+    Util.concatUnique = function(target, source, getValueFn) {
 
         if (!source || source.length == 0) {
             return target;
         }
 
         var a = target.concat();
-        getValueFn = getValueFn || function (item) {
+        getValueFn = getValueFn || function(item) {
                                         return item;
                                     };
-        for(var i=0; i<source.length; ++i) {
+        for (var i = 0; i < source.length; ++i) {
             var sourceItem = source[i],
                 sourceVal = getValueFn(sourceItem),
                 notFound = true;
-            for(var j=0; j<target.length; ++j) {
+            for (var j = 0; j < target.length; ++j) {
                 var targetItem = target[j],
                     targetVal = getValueFn(targetItem);
-                if(sourceVal == targetVal) {
+                if (sourceVal == targetVal) {
                     notFound = false;
                 }
             }
@@ -419,17 +415,11 @@ define([],
         };
     });
 
-
-
-
-
-
-
     /**
      * Test if the Url Path has a query string
      * @return {boolean}         true if the url path has a query string
      */
-    Util.hasQueryString = function (urlPath) {
+    Util.hasQueryString = function(urlPath) {
         var hasQuery = false,
             paramsPos = 0,
             search = /([^&=]+)=?([^&]*)/g;
@@ -443,22 +433,21 @@ define([],
         return hasQuery;
     };
 
-
     /**
      * Utility function that parses query string and returns a JSON with the param
      */
-    Util.getUrlParams = function () {
+    Util.getUrlParams = function() {
         return HH.getUrlParamsFromString(window.location.search.substring(1));
     };
 
     /**
      * Utility function that parses query string and returns a JSON with the param
      */
-    Util.getUrlParamsFromString = function (query) {
+    Util.getUrlParamsFromString = function(query) {
         var match,
             pl     = /\+/g,  // Regex for replacing addition symbol with a space
             search = /([^&=]+)=?([^&]*)/g,
-            decode = function (s) { return decodeURIComponent(s.replace(pl, " ")); },
+            decode = function(s) { return decodeURIComponent(s.replace(pl, ' ')); },
             queryPos;
 
         // Extracts the query part from the provided path
@@ -478,13 +467,13 @@ define([],
      *
      * @return {[type]} a ID with this format xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
      */
-    Util.getPseudoId = function (prefix) {
+    Util.getPseudoId = function(prefix) {
         // This prefix is used to easily identify a pseudoId in a string search
         if (prefix === undefined) {
-            prefix = "_$";
+            prefix = '_$';
         }
         return ((prefix + 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx').replace(/[xy]/g, function(c) {
-            var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);   // jshint ignore:line
+            var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);   // jshint ignore:line
             return v.toString(16);
         }));
     };
@@ -497,7 +486,7 @@ define([],
      * @param  {[type]} obj [description]
      * @return Object
      */
-    Util.getFirstElemFromObject = function (obj) {
+    Util.getFirstElemFromObject = function(obj) {
         var firstElem = null;
         for (var key in obj) {
             if (obj.hasOwnProperty(key)) {
@@ -514,7 +503,7 @@ define([],
     /**
     * classic JS inheritance function
     */
-    Util.inherit = function (Child, Parent) {
+    Util.inherit = function(Child, Parent) {
         var F = function() { };
         F.prototype = Parent.prototype;
         Child.prototype = new F();
@@ -523,17 +512,44 @@ define([],
     };
 
     /**
+     * This function will receive a JSON object and remove all the keys that
+     * have either empty strings, null, undefined values, empty objects and empty arrays.
+     *
+     * @return {Object} Sanitized object
+     */
+    Util.sanitizeJson = function(obj) {
+        for (var key in obj) {
+            var item = obj[key];
+            if (item === null || item === undefined || $.trim(item) === '') {
+                delete obj[key];
+            } else if (Array.isArray(item)) {
+                if (item.length === 0) {
+                    // Removes empty arrays
+                    delete obj[key];
+                } else {
+                    Util.sanitizeJson(item);
+                }
+            } else if (typeof item == 'object') {
+                Util.sanitizeJson(item);
+                if ($.isEmptyObject(item)) {
+                    delete obj[key];
+                }
+            }
+        }
+    };
+
+    /**
      * Adds padding left of the string
      *
      */
-    Util.strPaddingLeft = function (string, paddingValue) {
+    Util.strPaddingLeft = function(string, paddingValue) {
         return String(paddingValue + string).slice(-paddingValue.length);
     };
 
     /**
      * Capitalizes the first letter of a string
      */
-    Util.capitalizeFirstLetter = function (string) {
+    Util.capitalizeFirstLetter = function(string) {
         return string.charAt(0).toUpperCase() + string.slice(1);
     };
 
@@ -544,24 +560,24 @@ define([],
      * @param  {array} params parameters given to the format function to replace in the source
      * @return {string}        Formatted string
      */
-    Util.format = function( source, params ) {
+    Util.format = function(source, params) {
         var self = this;
 
-        if ( arguments.length === 1 ) {
+        if (arguments.length === 1) {
             return function() {
                 var args = $.makeArray(arguments);
                 args.unshift(source);
-                return self.format.apply( this, args );
+                return self.format.apply(this, args);
             };
         }
-        if ( arguments.length > 2 && params.constructor !== Array  ) {
+        if (arguments.length > 2 && params.constructor !== Array) {
             params = $.makeArray(arguments).slice(1);
         }
-        if ( params.constructor !== Array ) {
-            params = [ params ];
+        if (params.constructor !== Array) {
+            params = [params];
         }
-        $.each(params, function( i, n ) {
-            source = source.replace( new RegExp("\\{" + i + "\\}", "g"), function() {
+        $.each(params, function(i, n) {
+            source = source.replace(new RegExp('\\{' + i + '\\}', 'g'), function() {
                 return n;
             });
         });
@@ -590,10 +606,8 @@ define([],
         return false;
     };
 
-
     // Export the utils
     return Util;
 
 });
-
 /* jshint ignore:end */

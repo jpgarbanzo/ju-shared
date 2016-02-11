@@ -35,8 +35,8 @@ define([], function() {
         // Copy the properties over onto the new prototype
         for (var name in prop) {
             // Check if we're overwriting an existing function
-            prototype[name] = typeof prop[name] == "function" &&
-                typeof _super[name] == "function" && fnTest.test(prop[name]) ?
+            prototype[name] = typeof prop[name] == 'function' &&
+                typeof _super[name] == 'function' && fnTest.test(prop[name]) ?
                 (function(name, fn) {
                     return function() {
                         var tmp = this._super;
@@ -81,7 +81,7 @@ define([], function() {
          */
         Class.uses = function(classDef) {
 
-            var ignoreProps = ["_class", "constructor"],
+            var ignoreProps = ['_class', 'constructor'],
                 thisPrototype = this.prototype,
                 classPrototype = classDef.prototype,
                 newFunctions = {};
@@ -94,7 +94,6 @@ define([], function() {
 
                 if (ignoreProps.indexOf(name) >= 0) continue;
 
-
                 var privateFnTest = /^_.*$/,
                     implementFunction = privateFnTest.test(name) ||
                     !(classPrototype.hasOwnProperty(name) && !thisPrototype[name]);
@@ -103,7 +102,7 @@ define([], function() {
                     newFunctions[name] = classPrototype[name];
 
                 } else {
-                    var unimplementedMethodError = "An unimplemented method called " + name + " is trying to be inhereted.";
+                    var unimplementedMethodError = 'An unimplemented method called ' + name + ' is trying to be inhereted.';
                     throw Error(unimplementedMethodError);
                     return;
                 }
@@ -148,5 +147,4 @@ define([], function() {
     // Exports the module
     return Class;
 });
-
 /* jshint ignore:end */

@@ -23,13 +23,21 @@ define([],
     var NavigatorOnlineStatus = function(onlineHandler, offlineHandler) {
         this.isUp = window.navigator.onLine;
 
-        this.onlineHandler = onlineHandler;
-        this.offlineHandler = offlineHandler;
+        this.setOnlineHandler(onlineHandler);
+        this.setOfflineHandler(offlineHandler);
     };
 
     NavigatorOnlineStatus.prototype = {
         setup : function() {
             this.bindEvents();
+        },
+
+        setOnlineHandler : function(onlineHandler) {
+            this.onlineHandler = onlineHandler;
+        },
+
+        setOfflineHandler : function(offlineHandler) {
+            this.offlineHandler = offlineHandler;
         },
 
         bindEvents : function() {
@@ -52,9 +60,15 @@ define([],
         }
     };
 
+    // API test for easy access to online status
     NavigatorOnlineStatus.testOnline = function() {
         return window.navigator.onLine !== undefined ?
                window.navigator.onLine : true;
+    };
+
+    // alias for testOnline
+    NavigatorOnlineStatus.isOnline = function() {
+        return NavigatorOnlineStatus.testOnline();
     };
 
     return NavigatorOnlineStatus;

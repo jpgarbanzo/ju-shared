@@ -9,7 +9,6 @@
  * (c) Huli Inc
  */
 
-
 /**
  * L10n client-side module
  * This layer provides access to L10n translations in the server side
@@ -19,7 +18,7 @@ define([
             'jquery',
             'ju-shared/client-vars-manager'
         ],
-        function (
+        function(
             $,
             ClientVarsManager
         ) {
@@ -39,7 +38,7 @@ define([
          * @param  {string} keyName translation key
          * @return {string}         translated text
          */
-        t: function (keyName, defaultText) {
+        t: function(keyName, defaultText) {
             return this.get(keyName) || defaultText;
         },
         /**
@@ -51,10 +50,10 @@ define([
          * @param  {Boolean} hasParams  whether the message contains parameters to be replaced
          * @return {string}             translated text
          */
-        getMsgFunction : function (keyName, defaultMsg, hasParams) {
+        getMsgFunction : function(keyName, defaultMsg, hasParams) {
             //log('Creating new l10nMsgBinding');
             var self = this;
-            return function () {
+            return function() {
                 // var msg = $.isFunction(Validator.msgs[name]) ?
                 //         Validator.msgs[name](params) : Validator.msgs[name];
                 var msg = self.t(keyName) || defaultMsg;
@@ -70,7 +69,7 @@ define([
         /**
          * Mark a group as loaded, assigning a count of 1
          */
-        markGroupAsLoaded : function (groupName) {
+        markGroupAsLoaded : function(groupName) {
             this.addedGroups[groupName] = 1;
         }
     });

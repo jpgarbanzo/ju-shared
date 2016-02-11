@@ -17,13 +17,12 @@ define([
             'ju-shared/class',
             'ju-shared/util'
         ],
-        function (
+        function(
             require,
             Class,
             Util
         ) {
     'use strict';
-
 
     /**
      * Constants
@@ -61,7 +60,7 @@ define([
          *                                               }
          * @return Promise a promise that will return a depedency info object
          */
-        getDependencies : function (dependencies) {
+        getDependencies : function(dependencies) {
             var getDependenciesPromise = null;
 
             if (dependencies) {
@@ -75,7 +74,7 @@ define([
         /**
          * Uses requireJS to load a file and then injects all the dependencies to it
          */
-        requireWithInjection : function (/* classPath, injectedDependencies, callback  */ ) {
+        requireWithInjection : function(/* classPath, injectedDependencies, callback  */) {
             // @TODO: uses require to load the class and all the dependencies at once
         },
         /**
@@ -92,9 +91,9 @@ define([
          * }
          *
          */
-        setDependenciesInInstance : function (instance, injectedDependencies) {
+        setDependenciesInInstance : function(instance, injectedDependencies) {
 
-            $.each(injectedDependencies, function (dependencyName, dependencyInfo) {
+            $.each(injectedDependencies, function(dependencyName, dependencyInfo) {
                 var setMethodStr = SET_METHOD_PREFIX + Util.capitalizeFirstLetter(dependencyName),
                     setMethod = instance[setMethodStr];
 
@@ -112,18 +111,18 @@ define([
          * Given a dependencies info object we will fetch the dependencies
          * and store the instances in the same dependencies info
          */
-        fetchDependencies : function (dependenciesInfo) {
+        fetchDependencies : function(dependenciesInfo) {
 
             var dependenciesPaths = this.normalizeDependenciesInfoObj(dependenciesInfo);
 
-            var dependenciesFetchedPromise = new Promise(function (resolve /* , reject */) {
+            var dependenciesFetchedPromise = new Promise(function(resolve /* , reject */) {
                 // Use require to fetch all the dependencies
-                require( dependenciesPaths , function() {
+                require(dependenciesPaths, function() {
                     var dependenciesInstances = arguments,
                         dependenciesLength = arguments.length,
                         dependenciesIndex = 0;
 
-                    $.each(dependenciesInfo, function (dependencyName, dependencyInfo) {
+                    $.each(dependenciesInfo, function(dependencyName, dependencyInfo) {
                         // If we don't have more loaded dependencies, then break
                         if (dependenciesIndex >= dependenciesLength) {
                             return false;
@@ -140,6 +139,11 @@ define([
                 });
             });
 
+            // If there is any issue loading the dependencies then log it to the server
+            dependenciesFetchedPromise['catch'](function (err) {
+                Logger.error(err);
+            });
+
             return dependenciesFetchedPromise;
         },
         /**
@@ -150,11 +154,11 @@ define([
          * }
          * @return Array                  an array of the dependencies paths
          */
-        normalizeDependenciesInfoObj : function (dependenciesInfo) {
+        normalizeDependenciesInfoObj : function(dependenciesInfo) {
 
             var dependenciesPaths = [];
 
-            $.each(dependenciesInfo, function (dependencyName, dependencyInfo) {
+            $.each(dependenciesInfo, function(dependencyName, dependencyInfo) {
                 // If the value is a string then normalize to an object
                 if (typeof dependencyInfo == 'string') {
                     var newDependencyInfo = {
