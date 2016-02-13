@@ -62,7 +62,7 @@ define([
             var requestUrl = this.EP && this.EP.LOGIN ?  this.EP.LOGIN : AuthProxy.opts.EP.LOGIN;
             var ajaxParams = {
                 headers : {
-                    APP_KEY : this.opts.APP_KEY || BaseProxy.opts.APP_KEY
+                    APP_KEY : this.opts.appKey || AuthProvider.opts.appKey
                 },
                 contentType : 'application/x-www-form-urlencoded',
                 data : params,
@@ -90,7 +90,7 @@ define([
          */
         _loginSuccess : function (result, textStatus, request, callback) {
             var authProvider = AuthProvider.getInst();
-            var token = result.data ? result.data.jwt : null;
+            var token = result.data && result.data.jwt ? result.data.jwt : null;
             /** Update the localStorage with the returned token **/
             authProvider.updateToken(token);
             callback(result, textStatus, request);

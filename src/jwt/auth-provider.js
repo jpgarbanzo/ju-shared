@@ -37,12 +37,6 @@ define([
     ){
         'use strict';
 
-
-        /** Constants **/
-
-        var ERROR_INVALID_TOKEN = "Token invalid";
-
-
         var AuthProvider = ObservableClass.extend({
 
             /**
@@ -50,12 +44,11 @@ define([
              * @alias module:ju-shared/jwt/auth-provider
              * @param {Object} opts - configuration
              * @param {String} opts.appKey - App key used to validate and request tokens
-             * @param {String} opts.redirectURL - the app will be redirected to this URL if the token is invalid
              */
             init : function (opts) {
+                opts = opts || {};
                 this.webStorage = new WebStorage();
                 this.appKey = opts.appKey || AuthProvider.opts.appKey;
-                this.redirectURL = opts.redirectURL || AuthProvider.redirectURL;
                 // JWT options needed to create and validate a token
                 this.jwtOptions = {
                     audience: this.appKey
@@ -103,7 +96,7 @@ define([
              * Get the expiration time
              * @returns {Number} returns -1 if there is not token
              */
-            getExpirationTime : function () {
+            getExpirationTime : function() {
                 return this.accessToken ? this.accessToken.getExpirationTime() : -1;
             },
 
@@ -111,7 +104,7 @@ define([
              * Checks if the current token is valid
              * @returns {Boolean}
              */
-            isTokenValid : function () {
+            isTokenValid : function() {
                 return this.accessToken && this.accessToken.isValid();
             },
 
@@ -120,7 +113,7 @@ define([
              * @param {StorageEvent} event
              * @see https://developer.mozilla.org/en-US/docs/Web/Events/storage
              */
-            refreshTokenHandler : function(event){
+            refreshTokenHandler : function(event) {
                 if (event && event.key === AuthProvider.WEB_STORAGE_KEY_ACCESS_TOKEN){
                     log('AuthProvider: Token Updated in localStorage, reloading token in memory');
                     this.accessToken = this.loadToken();
@@ -128,43 +121,6 @@ define([
                 }
             },
 
-            /**
-             * Returns a middleware object to handle the auth
-             * @returns {Object}
-             */
-            getMiddleware  : function () {
-                var _self = this;
-                var Middleware = {};
-
-                /**
-                 * Defines and returns a promise that validates the authentication
-                 * @param {Object }controllerInfo - controller/route information
-                 * @returns {Promise}
-                 */
-               Middleware.run = function (controllerInfo) {
-                    return new Promise(function(resolve, reject) {
-                        if (!controllerInfo.needAuthentication || (controllerInfo.needAuthentication && _self.isTokenValid())) {
-                            resolve(true);
-                        }
-                        else {
-                            reject(new Error(ERROR_INVALID_TOKEN));
-                        }
-                    });
-                };
-
-
-                /**
-                 * Redirects to opts.redirectURL when the authentication fails
-                 * @param {Error}
-                 */
-                Middleware.errorHandler = function (error) {
-                    log('AuthProvider: Error handled, token invalid, redirect to login page '+ _self.redirectURL);
-                    window.location.href = _self.redirectURL;
-                    throw error;
-                };
-
-                return Middleware;
-            }
         });
 
 
@@ -179,6 +135,10 @@ define([
              */
             WEB_STORAGE_KEY_ACCESS_TOKEN : 'access_token',
 
+            /**
+             * @constant {String} ERROR_INVALID_TOKEN - Invalid token message
+             */
+            ERROR_INVALID_TOKEN : "Token invalid",
 
             EV : {
                 /**
@@ -189,7 +149,6 @@ define([
             },
 
             opts : {
-                redirectURL : '/'
             },
 
             configure : function(opts) {

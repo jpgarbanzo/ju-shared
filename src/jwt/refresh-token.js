@@ -85,7 +85,7 @@ define([
                         timeoutId = window.setTimeout($.proxy(this.start,this), nextValidation * 1000);
                     }
                 }else{
-                    Logger.error("RefreshToken: token invalid");
+                    Logger.warn("RefreshToken: token invalid");
                 }
             },
 
