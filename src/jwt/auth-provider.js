@@ -9,7 +9,6 @@
  * (c) Huli Inc
  */
 
-
 /**
  * @file Manage the authentication token
  * @description Manage the authentication token(CRUD operations), sign requests and triggers an event when the token is updated
@@ -29,12 +28,12 @@ define([
         'ju-shared/jwt/token',
         'ju-shared/web-storage'
     ],
-    function (
+    function(
         $,
         ObservableClass,
         JWTToken,
         WebStorage
-    ){
+    ) {
         'use strict';
 
         var AuthProvider = ObservableClass.extend({
@@ -45,13 +44,13 @@ define([
              * @param {Object} opts - configuration
              * @param {String} opts.appKey - App key used to validate and request tokens
              */
-            init : function (opts) {
+            init : function(opts) {
                 opts = opts || {};
-                this.webStorage = new WebStorage();
+                this.webStorage = new WebStorage().listenStorageEvents();
                 this.appKey = opts.appKey || AuthProvider.opts.appKey;
                 // JWT options needed to create and validate a token
                 this.jwtOptions = {
-                    audience: this.appKey
+                    audience : this.appKey
                 };
                 this.accessToken = this.loadToken();
                 this.webStorage.on(WebStorage.EV.STORAGE_EVENT, $.proxy(this.refreshTokenHandler,this));
@@ -61,7 +60,7 @@ define([
              * Load the token value from the source(1.local storage | 2. cookie)
              * @returns {*|token} JWTToken
              */
-            loadToken : function () {
+            loadToken : function() {
                 return new JWTToken(this.webStorage.getItem(AuthProvider.WEB_STORAGE_KEY_ACCESS_TOKEN), this.jwtOptions);
             },
 
@@ -69,9 +68,9 @@ define([
              * Sets and stores the token on local storage
              * @param token {String} - JWT token
              */
-            updateToken : function (token) {
-                this.accessToken =  new JWTToken(token, this.jwtOptions);
-                var jwtToken = this.accessToken ?  this.accessToken.getToken() : null;
+            updateToken : function(token) {
+                this.accessToken = new JWTToken(token, this.jwtOptions);
+                var jwtToken = this.accessToken ? this.accessToken.getToken() : null;
                 this.webStorage.setItem(AuthProvider.WEB_STORAGE_KEY_ACCESS_TOKEN, jwtToken);
                 this.trigger(AuthProvider.EV.TOKEN_UPDATED);
             },
@@ -82,7 +81,7 @@ define([
              * @param {Object} params  - ajax params
              * @param {Boolean} [params.useJWTAuthentication=true]  - indicates if should use JWT tokens on the request
              */
-            signRequest : function (ajaxCallback, params) {
+            signRequest : function(ajaxCallback, params) {
                 var useJWTAuthentication = (params && params.useJWTAuthentication === false) ? false : true;
                 if (useJWTAuthentication) {
                     var headers = params.headers || {};
@@ -114,7 +113,7 @@ define([
              * @see https://developer.mozilla.org/en-US/docs/Web/Events/storage
              */
             refreshTokenHandler : function(event) {
-                if (event && event.key === AuthProvider.WEB_STORAGE_KEY_ACCESS_TOKEN){
+                if (event && event.key === AuthProvider.WEB_STORAGE_KEY_ACCESS_TOKEN) {
                     log('AuthProvider: Token Updated in localStorage, reloading token in memory');
                     this.accessToken = this.loadToken();
                     this.trigger(AuthProvider.EV.TOKEN_UPDATED);
@@ -122,7 +121,6 @@ define([
             },
 
         });
-
 
         AuthProvider.classMembers({
             /**
@@ -138,14 +136,14 @@ define([
             /**
              * @constant {String} ERROR_INVALID_TOKEN - Invalid token message
              */
-            ERROR_INVALID_TOKEN : "Token invalid",
+            ERROR_INVALID_TOKEN : 'Token invalid',
 
             EV : {
                 /**
                  * Event triggered when the token is updated
                  * @event module:ju-shared/jwt/auth-provider#TOKEN_UPDATED
                  */
-                TOKEN_UPDATED: 'access_token_updated'
+                TOKEN_UPDATED : 'access_token_updated'
             },
 
             opts : {

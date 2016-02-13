@@ -7,8 +7,7 @@
  * |_| |_|\___,_||_| |_|
  *
  * (c) Huli Inc
- */// jscs:ignore disallowMultipleLineBreaks
-
+ */
 
 /**
  * @file Handles the authentication in the middleware route phase

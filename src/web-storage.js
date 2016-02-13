@@ -27,11 +27,11 @@ define([
         'ju-shared/observable-class',
         'ju-shared/util'
     ],
-    function (
+    function(
         $,
         ObservableClass,
         Util
-    ){
+    ) {
 
         'use strict';
 
@@ -40,20 +40,18 @@ define([
             /**
              * @constructor
              * @alias module:ju-shared/web-storage
-             * @param {Object} [opts] - configuration options
-             * @param {Boolean} [opts.fireStorageEvent=true] - activate the listener of storage event, it is fired when a storage area (localStorage or sessionStorage) has been modified.
              */
-            init : function (opts) {
-                this.fireStorageEvent = true;
+            init : function() {
                 this.isLocalStorageAvailable = this.getIsLocalStorageAvailable();
+            },
 
-                if (opts) {
-                    this.fireStorageEvent = opts.fireStorageEvent || this.fireStorageEvent;
-                }
-
-                if (this.isLocalStorageAvailable && this.fireStorageEvent){
-                    window.addEventListener("storage", $.proxy(this.storageEventHandler, this), false);
-                }
+            /**
+             * Activate the listener of storage event, it is fired when a storage area (localStorage or sessionStorage) has been modified.
+             * @return {WebStorage} itself
+             */
+            listenStorageEvents : function() {
+                window.addEventListener('storage', $.proxy(this.storageEventHandler, this), false);
+                return this;
             },
 
             /**
@@ -61,8 +59,8 @@ define([
              * @param {String} key - A String containing the name of the key you want to create/update.
              * @param {String} value - A DOMString containing the value you want to give the key you are creating/updating.
              */
-            setItem : function (key, value) {     // jshint ignore:line
-                if (this.isLocalStorageAvailable){
+            setItem : function(key, value) {
+                if (this.isLocalStorageAvailable) {
                     window.localStorage.setItem(key, value);
                 }
             },
@@ -72,7 +70,7 @@ define([
              * @param {String} key - A String containing the name of the key you want to create/update.
              * @return {String} value for the given key
              */
-            getItem : function (key) {
+            getItem : function(key) {
                 return window.localStorage.getItem(key);
             },
 
@@ -80,7 +78,7 @@ define([
              * Removes the item from the storage
              * @param {String} key - A String containing the name of the key you want to create/update.
              */
-            removeItem : function (key) {
+            removeItem : function(key) {
                 window.localStorage.removeItem(key);
             },
 
@@ -113,7 +111,7 @@ define([
              * @param event {StorageEvent} - event {@link https://developer.mozilla.org/en-US/docs/Web/Events/storage}
              * @todo implement an event listener for key, right now fires an event for a change in any key
              */
-            storageEventHandler : function (event) {
+            storageEventHandler : function(event) {
                 this.trigger(WebStorage.EV.STORAGE_EVENT, event);
             }
         });
@@ -127,7 +125,7 @@ define([
                  */
                 STORAGE_EVENT : 'storageEvent'
             },
-            formatKey : function () {
+            formatKey : function() {
                 return Util.format.apply(Util, arguments);
             }
         });
