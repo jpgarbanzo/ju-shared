@@ -31,6 +31,7 @@
     "mocha": "~2.3.4",
     "requirejs": "~2.1.22",
     "sinon": "~1.17.2",
-    "sinon-chai": "~2.8.0"
+    "sinon-chai": "~2.8.0",
+    "grunt-contrib-jshint": "~0.12.0"
   }
 }
